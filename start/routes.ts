@@ -33,3 +33,7 @@ Route.get("/docs", async () => {
 Route.get('/', async () => {
   return { hello: 'world' }
 })
+
+Route.post('/register', 'AuthController.register')
+Route.post('/login', 'AuthController.login')
+Route.post('/verify-email-code', 'AuthController.verifyEmailCode')

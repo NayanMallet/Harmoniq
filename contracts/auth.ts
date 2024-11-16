@@ -5,7 +5,7 @@
  * file.
  */
 
-import User from 'App/Models/User'
+import Artist from 'App/Models/Artist'
 
 declare module '@ioc:Adonis/Addons/Auth' {
   /*
@@ -23,7 +23,7 @@ declare module '@ioc:Adonis/Addons/Auth' {
   interface ProvidersList {
     /*
     |--------------------------------------------------------------------------
-    | User Provider
+    | Artist Provider
     |--------------------------------------------------------------------------
     |
     | The following provider uses Lucid models as a driver for fetching user
@@ -34,8 +34,8 @@ declare module '@ioc:Adonis/Addons/Auth' {
     |
     */
     user: {
-      implementation: LucidProviderContract<typeof User>
-      config: LucidProviderConfig<typeof User>
+      implementation: LucidProviderContract<typeof Artist>
+      config: LucidProviderConfig<typeof Artist>
     }
   }
 

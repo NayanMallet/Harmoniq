@@ -36,4 +36,4 @@ Route.get('/', async () => {
 
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
-Route.post('/verify-email-code', 'AuthController.verifyEmailCode')
+Route.post('/verify-email', 'AuthController.verifyEmail')

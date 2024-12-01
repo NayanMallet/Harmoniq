@@ -44,4 +44,13 @@ Route.group(() => {
   Route.post('/reset-password', 'AuthController.resetPassword')
 }).prefix('/auth')
 
+// Artist routes
+Route.group(() => {
+  // Gestion des profils
+  Route.get('/profiles', 'ProfilesController.index') // Lister tous les artistes avec filtres
+  Route.get('/profiles/:id', 'ProfilesController.show') // Voir un profil d'artiste
+  Route.put('/profiles', 'ProfilesController.update').middleware('auth') // Mettre à jour le profil de l'artiste connecté
+}).prefix('/api/artists')
+
+
 

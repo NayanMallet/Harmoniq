@@ -28,16 +28,20 @@ export default class Artist extends BaseModel {
   @column()
   public biography: string | null
 
+  //TODO: FIX SOCIAL LINKS
   @column()
-  public socialLinks: any // JSON
+  public socialLinks: Record<string, string> | null
 
   @column()
   public location: string | null
 
   @column()
-  public isVerified: boolean
+  public popularity: number
 
   @column()
+  public isVerified: boolean
+
+  @column({ serializeAs: null })
   public verificationCode: string | null
 
   @column.dateTime({ autoCreate: true })

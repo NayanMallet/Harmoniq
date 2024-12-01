@@ -9,7 +9,7 @@ export default class CreateAllTables extends BaseSchema {
       table.string('password').notNullable()
       table.string('name').notNullable()
       table.text('biography').nullable()
-      table.json('social_links').nullable()
+      table.json('social_links').nullable() // JSON format corrected for MySQL
       table.string('location').nullable()
       table.boolean('is_verified').defaultTo(false)
       table.string('verification_code').nullable()

@@ -11,9 +11,11 @@ export default class CreateAllTables extends BaseSchema {
       table.string('password').notNullable()
       table.string('name').notNullable()
       table.text('biography').nullable()
-      table.json('social_links').nullable() // Assurez-vous que votre SGBD supporte le type JSON
-      table.string('location').nullable()
+      table.json('social_links').nullable()
+      table.json('location').nullable()
       table.string('verification_code').nullable()
+      table.string('password_reset_token').nullable()
+      table.timestamp('password_reset_expires_at', { useTz: true }).nullable()
       table.boolean('is_verified').notNullable().defaultTo(false)
       table.integer('popularity').notNullable().defaultTo(0)
       table.json('genres').nullable() // Tableau de genres
@@ -61,8 +63,8 @@ export default class CreateAllTables extends BaseSchema {
 
       // Contrainte pour s'assurer que soit single_id, soit album_id est présent, mais pas les deux
       table.check(
-        '((single_id IS NOT NULL AND album_id IS NULL) OR (single_id IS NULL AND album_id IS NOT NULL))'
-      )
+          '((single_id IS NOT NULL AND album_id IS NULL) OR (single_id IS NULL AND album_id IS NOT NULL))'
+        )
     })
 
     // Table des droits d'auteur

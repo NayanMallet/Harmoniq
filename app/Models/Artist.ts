@@ -1,22 +1,53 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
 import {
+  BaseModel,
   column,
   beforeSave,
-  BaseModel,
+  beforeCreate,
   hasMany,
   HasMany,
-  beforeCreate,
 } from '@ioc:Adonis/Lucid/Orm'
 import Album from './Album'
 import Single from './Single'
 import Playlist from './Playlist'
 import Notification from './Notification'
+import { Location, SocialLinks } from '../../resources/utils/interfaces'
 
-type SocialLinks = {
-  [key: string]: string
-}
-
+/**
+ * @swagger
+ * definitions:
+ *   Artist:
+ *     type: object
+ *     properties:
+ *       id:
+ *         type: integer
+ *       email:
+ *         type: string
+ *         format: email
+ *       name:
+ *         type: string
+ *       biography:
+ *         type: string
+ *       socialLinks:
+ *         $ref: '#/definitions/SocialLinks'
+ *       location:
+ *         $ref: '#/definitions/Location'
+ *       isVerified:
+ *         type: boolean
+ *       popularity:
+ *         type: integer
+ *       genres:
+ *         type: array
+ *         items:
+ *           type: string
+ *       createdAt:
+ *         type: string
+ *         format: date-time
+ *       updatedAt:
+ *         type: string
+ *         format: date-time
+ */
 export default class Artist extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -34,22 +65,45 @@ export default class Artist extends BaseModel {
   @column()
   public biography?: string
 
-
-  // Assure la conversion entre l'objet et la chaîne JSON pour le stockage en base de données.
+// Gestion des socialLinks avec sérialisation/désérialisation JSON
   @column({
-    serialize: (value: string) => (value ? JSON.parse(value) : null),
-    prepare: (value: SocialLinks) => JSON.stringify(value),
+    prepare: (value: SocialLinks | null) => (value ? JSON.stringify(value) : null),
+    consume: (value: string | object | null) => {
+      if (!value) return null
+      if (typeof value === 'string') {
+        return JSON.parse(value)
+      } else {
+        // Si la valeur est déjà un objet, on la retourne directement
+        return value as SocialLinks
+      }
+    },
   })
   public socialLinks?: SocialLinks
 
+// Gestion de la location avec sérialisation/désérialisation JSON
   @column({
-    serialize: (value: string) => value ? value.split(',').map((v) => v.trim()) : null,
-    prepare: (value: string[]) => value.join(', '),
+    prepare: (value: Location | null) => (value ? JSON.stringify(value) : null),
+    consume: (value: string | object | null) => {
+      if (!value) return null
+      if (typeof value === 'string') {
+        return JSON.parse(value)
+      } else {
+        // Si la valeur est déjà un objet, on la retourne directement
+        return value as Location
+      }
+    },
   })
-  public location?: string
+  public location?: Location
+
 
   @column({ serializeAs: null })
-  public verificationCode?: string
+  public verificationCode?: string | null
+
+  @column({ serializeAs: null })
+  public passwordResetToken?: string | null
+
+  @column.dateTime({ serializeAs: null })
+  public passwordResetExpiresAt?: DateTime | null
 
   @column()
   public isVerified: boolean = false
@@ -57,8 +111,8 @@ export default class Artist extends BaseModel {
   @column()
   public popularity: number = 0
 
-  @column()
-  public genres?: string[]
+  // @column()
+  // public genres?: string[]
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -78,30 +132,6 @@ export default class Artist extends BaseModel {
     }
   }
 
-  public async updateGenres() {
-    const singlesGenres = await Single
-      .query()
-      .where('artistId', this.id)
-      .whereNotNull('genre')
-      .groupBy('genre')
-      .count('* as count')
-      .select('genre')
-
-    const genreCounts: { [key: string]: number } = {}
-    singlesGenres.forEach((row) => {
-      const genre = row.genre
-      const count = Number(row.$extras.count)
-      genreCounts[genre] = (genreCounts[genre] || 0) + count
-    })
-
-    const sortedGenres = Object.keys(genreCounts).sort(
-      (a, b) => genreCounts[b] - genreCounts[a]
-    )
-
-    this.genres = sortedGenres
-    await this.save()
-  }
-
   // Relations
   @hasMany(() => Album)
   public albums: HasMany<typeof Album>
@@ -115,3 +145,27 @@ export default class Artist extends BaseModel {
   @hasMany(() => Notification)
   public notifications: HasMany<typeof Notification>
 }
+
+  // public async updateGenres() {
+  //   const singlesGenres = await Single
+  //     .query()
+  //     .where('artistId', this.id)
+  //     .whereNotNull('genre')
+  //     .groupBy('genre')
+  //     .count('* as count')
+  //     .select('genre')
+  //
+  //   const genreCounts: { [key: string]: number } = {}
+  //   singlesGenres.forEach((row) => {
+  //     const genre = row.genre
+  //     const count = Number(row.$extras.count)
+  //     genreCounts[genre] = (genreCounts[genre] || 0) + count
+  //   })
+  //
+  //   const sortedGenres = Object.keys(genreCounts).sort(
+  //     (a, b) => genreCounts[b] - genreCounts[a]
+  //   )
+  //
+  //   this.genres = sortedGenres
+  //   await this.save()
+  // }

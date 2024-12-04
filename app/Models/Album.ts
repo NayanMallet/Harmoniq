@@ -8,7 +8,7 @@ import {
   HasOne,
   hasMany,
   HasMany,
-  afterSave,
+  // afterSave,
 } from '@ioc:Adonis/Lucid/Orm'
 import Artist from './Artist'
 import Single from './Single'
@@ -50,11 +50,11 @@ export default class Album extends BaseModel {
   @hasMany(() => Single)
   public singles: HasMany<typeof Single>
 
-  @afterSave()
-  public static async updateArtistGenres(album: Album) {
-    const artist = await Artist.find(album.artistId)
-    if (artist) {
-      await artist.updateGenres()
-    }
-  }
+  // @afterSave()
+  // public static async updateArtistGenres(album: Album) {
+  //   const artist = await Artist.find(album.artistId)
+  //   if (artist) {
+  //     await artist.updateGenres()
+  //   }
+  // }
 }

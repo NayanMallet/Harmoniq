@@ -6,7 +6,7 @@ import {
   BelongsTo,
   hasOne,
   HasOne,
-  afterSave,
+  // afterSave,
 } from '@ioc:Adonis/Lucid/Orm'
 import Artist from './Artist'
 import Album from './Album'
@@ -55,11 +55,11 @@ export default class Single extends BaseModel {
   @hasOne(() => Stat)
   public stats: HasOne<typeof Stat>
 
-  @afterSave()
-  public static async updateArtistGenres(single: Single) {
-    const artist = await Artist.find(single.artistId)
-    if (artist) {
-      await artist.updateGenres()
-    }
-  }
+  // @afterSave()
+  // public static async updateArtistGenres(single: Single) {
+  //   const artist = await Artist.find(single.artistId)
+  //   if (artist) {
+  //     await artist.updateGenres()
+  //   }
+  // }
 }

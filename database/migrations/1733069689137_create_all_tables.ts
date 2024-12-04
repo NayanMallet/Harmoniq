@@ -1,6 +1,7 @@
 // database/migrations/xxxx_create_all_tables.ts
 
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
+import { Genre } from '../../resources/utils/GenreEnum'
 
 export default class CreateAllTables extends BaseSchema {
   public async up() {
@@ -29,7 +30,7 @@ export default class CreateAllTables extends BaseSchema {
       table.string('title').notNullable()
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
-      table.string('genre').notNullable()
+      table.json('genres').nullable() // Tableau de genres
       table.timestamp('release_date', { useTz: true }).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
@@ -40,10 +41,10 @@ export default class CreateAllTables extends BaseSchema {
       table.increments('id')
       table.string('title').notNullable()
       table.integer('album_id').unsigned().nullable()
-        .references('id').inTable('albums').onDelete('CASCADE')
+        .references('id').inTable('albums').onDelete('SET NULL')
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
-      table.string('genre').notNullable()
+      table.enum('genre', Object.values(Genre)).notNullable()
       table.timestamp('release_date', { useTz: true }).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
@@ -63,8 +64,8 @@ export default class CreateAllTables extends BaseSchema {
 
       // Contrainte pour s'assurer que soit single_id, soit album_id est présent, mais pas les deux
       table.check(
-          '((single_id IS NOT NULL AND album_id IS NULL) OR (single_id IS NULL AND album_id IS NOT NULL))'
-        )
+        '((single_id IS NOT NULL AND album_id IS NULL) OR (single_id IS NULL AND album_id IS NOT NULL))'
+      )
     })
 
     // Table des droits d'auteur
@@ -73,7 +74,7 @@ export default class CreateAllTables extends BaseSchema {
       table.integer('metadata_id').unsigned().notNullable()
         .references('id').inTable('metadata').onDelete('CASCADE')
       table.integer('artist_id').unsigned().nullable()
-        .references('id').inTable('artists').onDelete('CASCADE')
+        .references('id').inTable('artists').onDelete('SET NULL')
       table.string('owner_name').nullable()
       table.string('role').notNullable()
       table.float('percentage').notNullable()
@@ -137,9 +138,19 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('expires_at', { useTz: true }).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
     })
+
+    // Table pivot pour les featurings
+    this.schema.createTable('single_featurings', (table) => {
+      table.integer('single_id').unsigned().notNullable()
+        .references('id').inTable('singles').onDelete('CASCADE')
+      table.integer('artist_id').unsigned().notNullable()
+        .references('id').inTable('artists').onDelete('CASCADE')
+      table.primary(['single_id', 'artist_id'])
+    })
   }
 
   public async down() {
+    this.schema.dropTable('single_featurings')
     this.schema.dropTable('api_tokens')
     this.schema.dropTable('notifications')
     this.schema.dropTable('playlist_singles')

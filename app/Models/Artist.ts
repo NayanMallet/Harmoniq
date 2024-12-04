@@ -13,6 +13,7 @@ import Single from './Single'
 import Playlist from './Playlist'
 import Notification from './Notification'
 import { Location, SocialLinks } from '../../resources/utils/interfaces'
+import { Genre } from '../../resources/utils/GenreEnum'
 
 /**
  * @swagger
@@ -40,7 +41,7 @@ import { Location, SocialLinks } from '../../resources/utils/interfaces'
  *       genres:
  *         type: array
  *         items:
- *           type: string
+ *           $ref: '#/definitions/Genre'
  *       createdAt:
  *         type: string
  *         format: date-time
@@ -111,8 +112,18 @@ export default class Artist extends BaseModel {
   @column()
   public popularity: number = 0
 
-  // @column()
-  // public genres?: string[]
+  @column({
+    prepare: (value: Genre[] | null) => (value ? JSON.stringify(value) : null),
+    consume: (value: string | object | null) => {
+      if (!value) return null
+      if (typeof value === 'string') {
+        return JSON.parse(value) as Genre[]
+      } else {
+        return value as Genre[]
+      }
+    },
+  })
+  public genres?: Genre[]
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -145,27 +156,3 @@ export default class Artist extends BaseModel {
   @hasMany(() => Notification)
   public notifications: HasMany<typeof Notification>
 }
-
-  // public async updateGenres() {
-  //   const singlesGenres = await Single
-  //     .query()
-  //     .where('artistId', this.id)
-  //     .whereNotNull('genre')
-  //     .groupBy('genre')
-  //     .count('* as count')
-  //     .select('genre')
-  //
-  //   const genreCounts: { [key: string]: number } = {}
-  //   singlesGenres.forEach((row) => {
-  //     const genre = row.genre
-  //     const count = Number(row.$extras.count)
-  //     genreCounts[genre] = (genreCounts[genre] || 0) + count
-  //   })
-  //
-  //   const sortedGenres = Object.keys(genreCounts).sort(
-  //     (a, b) => genreCounts[b] - genreCounts[a]
-  //   )
-  //
-  //   this.genres = sortedGenres
-  //   await this.save()
-  // }

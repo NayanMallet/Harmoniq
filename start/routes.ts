@@ -47,10 +47,29 @@ Route.group(() => {
 // Artist routes
 Route.group(() => {
   // Gestion des profils
-  Route.get('/profiles', 'ProfilesController.index') // Lister tous les artistes avec filtres
-  Route.get('/profiles/:id', 'ProfilesController.show') // Voir un profil d'artiste
-  Route.put('/profiles', 'ProfilesController.update').middleware('auth') // Mettre à jour le profil de l'artiste connecté
-}).prefix('/api/artists')
+  Route.get('/', 'ProfilesController.index') // Lister tous les artistes avec filtres
+  Route.get('/:id', 'ProfilesController.show') // Voir un profil d'artiste
+  Route.put('/', 'ProfilesController.update').middleware('auth') // Mettre à jour le profil de l'artiste connecté
+})
+  .prefix('/api/artists')
+  .namespace('App/Controllers/Http')
 
+// Singles routes
+Route.group(() => {
+  Route.post('/', 'SinglesController.create').middleware('auth')
+  Route.put('/:id', 'SinglesController.update').middleware('auth')
+  Route.get('/:id', 'SinglesController.show')
+  Route.delete('/:id', 'SinglesController.delete').middleware('auth')
+})
+  .prefix('/api/singles')
+  .namespace('App/Controllers/Http')
 
-
+// Albums routes
+Route.group(() => {
+  Route.post('/', 'AlbumsController.create').middleware('auth')
+  Route.put('/:id', 'AlbumsController.update').middleware('auth')
+  Route.get('/:id', 'AlbumsController.show')
+  Route.delete('/:id', 'AlbumsController.delete').middleware('auth')
+})
+  .prefix('/api/albums')
+  .namespace('App/Controllers/Http')

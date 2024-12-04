@@ -8,6 +8,7 @@ import {
 } from '@ioc:Adonis/Lucid/Orm'
 import Metadata from './Metadata'
 import Artist from './Artist'
+import { Exception } from '@adonisjs/core/build/standalone'
 
 export default class Copyright extends BaseModel {
   @column({ isPrimary: true })
@@ -46,12 +47,13 @@ export default class Copyright extends BaseModel {
   public static async validateCopyright(copyright: Copyright) {
     // Validation du pourcentage entre 0 et 100
     if (copyright.percentage < 0 || copyright.percentage > 100) {
-      throw new Error('Percentage must be between 0 and 100')
+      throw new Exception('Percentage must be between 0 and 100')
     }
 
-    // Validation de la présence de artistId ou ownerName
-    if (!copyright.artistId && !copyright.ownerName) {
-      throw new Error('Either artistId or ownerName must be provided')
+    // Validation de la présence de artistId ou ownerName, mais pas les deux
+    if ((copyright.artistId && copyright.ownerName) ||
+      (!copyright.artistId && !copyright.ownerName)) {
+      throw new Exception('Either artistId or ownerName must be provided, but not both')
     }
   }
 }

@@ -42,7 +42,9 @@ Route.group(() => {
   Route.post('/login', 'AuthController.login')
   Route.post('/request-password-reset', 'AuthController.requestPasswordReset')
   Route.post('/reset-password', 'AuthController.resetPassword')
-}).prefix('/auth')
+})
+  .prefix('/api/auth')
+  .namespace('App/Controllers/Http')
 
 // Artist routes
 Route.group(() => {

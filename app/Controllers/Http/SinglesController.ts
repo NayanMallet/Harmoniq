@@ -18,6 +18,11 @@ export default class SinglesController {
    */
 
   //TODO: realease date du single/album => pas affiché avant la date de sortie
+  //TODO: singles ne sont pas ajoutés à l'album
+  //TODO: error case + code d'erreur personaliser
+  //TODO: Optimise genres tables
+  //TODO: Featuring aren't added to the single title
+
   /**
    * @swagger
    * /singles:
@@ -173,6 +178,7 @@ export default class SinglesController {
       const featuringArtists = payload.copyrights
         .filter((c) => c.artistId && c.artistId !== artist.id)
         .map((c) => c.artistId)
+        .filter((id): id is number => id !== undefined); // Filtrer les valeurs undefined
 
       if (featuringArtists.length > 0) {
         await single.related('featurings').attach(featuringArtists)

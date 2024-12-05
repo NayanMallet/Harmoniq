@@ -15,40 +15,7 @@ import Notification from './Notification'
 import { Location, SocialLinks } from '../../resources/utils/interfaces'
 import { Genre } from '../../resources/utils/GenreEnum'
 
-/**
- * @swagger
- * definitions:
- *   Artist:
- *     type: object
- *     properties:
- *       id:
- *         type: integer
- *       email:
- *         type: string
- *         format: email
- *       name:
- *         type: string
- *       biography:
- *         type: string
- *       socialLinks:
- *         $ref: '#/definitions/SocialLinks'
- *       location:
- *         $ref: '#/definitions/Location'
- *       isVerified:
- *         type: boolean
- *       popularity:
- *         type: integer
- *       genres:
- *         type: array
- *         items:
- *           $ref: '#/definitions/Genre'
- *       createdAt:
- *         type: string
- *         format: date-time
- *       updatedAt:
- *         type: string
- *         format: date-time
- */
+
 export default class Artist extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -66,7 +33,7 @@ export default class Artist extends BaseModel {
   @column()
   public biography?: string
 
-// Gestion des socialLinks avec sérialisation/désérialisation JSON
+  // Sérialisation/Désérialisation JSON
   @column({
     prepare: (value: SocialLinks | null) => (value ? JSON.stringify(value) : null),
     consume: (value: string | object | null) => {
@@ -81,7 +48,6 @@ export default class Artist extends BaseModel {
   })
   public socialLinks?: SocialLinks
 
-// Gestion de la location avec sérialisation/désérialisation JSON
   @column({
     prepare: (value: Location | null) => (value ? JSON.stringify(value) : null),
     consume: (value: string | object | null) => {
@@ -89,13 +55,11 @@ export default class Artist extends BaseModel {
       if (typeof value === 'string') {
         return JSON.parse(value)
       } else {
-        // Si la valeur est déjà un objet, on la retourne directement
         return value as Location
       }
     },
   })
   public location?: Location
-
 
   @column({ serializeAs: null })
   public verificationCode?: string | null

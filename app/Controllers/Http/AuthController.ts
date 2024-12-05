@@ -6,60 +6,20 @@ import { DateTime } from 'luxon'
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
 export default class AuthController {
+
   /**
-   * @swagger
-   * /register:
-   *   post:
-   *     tags:
-   *       - Authentication
-   *     summary: Register a new artist
-   *     description: Register a new artist and send a verification email.
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - email
-   *               - password
-   *               - name
-   *             properties:
-   *               email:
-   *                 type: string
-   *                 format: email
-   *               password:
-   *                 type: string
-   *               password_confirmation:
-   *                 type: string
-   *               name:
-   *                 type: string
-   *     responses:
-   *       201:
-   *         description: Artist registered successfully.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *       400:
-   *         description: Validation errors or registration failed.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 errors:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       field:
-   *                         type: string
-   *                       message:
-   *                         type: string
+   * @register
+   * @summary Register a new artist
+   * @description Registers a new artist and sends a verification email.
+   * @requestBody
+   * {
+   *   "email": "string",
+   *   "password": "string",
+   *   "password_confirmation": "string",
+   *   "name": "string"
+   * }
+   * @responseBody 201 - { "message": "Artist registered successfully. Please verify your email." }
+   * @responseBody 400 - { "errors": [{ "field": "email", "message": "Validation or registration failed." }] }
    */
   public async register({ request, response }: HttpContextContract) {
     const artistSchema = schema.create({
@@ -111,35 +71,17 @@ export default class AuthController {
   }
 
   /**
-   * @swagger
-   * /verify-email:
-   *   post:
-   *     tags:
-   *       - Authentication
-   *     summary: Verify artist's email
-   *     description: Verify the artist's email using the verification code.
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - email
-   *               - code
-   *             properties:
-   *               email:
-   *                 type: string
-   *                 format: email
-   *               code:
-   *                 type: string
-   *     responses:
-   *       200:
-   *         description: Email verified successfully.
-   *       400:
-   *         description: Invalid verification code.
-   *       404:
-   *         description: Artist not found.
+   * @verifyEmail
+   * @summary Verify artist's email
+   * @description Verifies the artist's email using the provided verification code.
+   * @requestBody
+   * {
+   *   "email": "string",
+   *   "code": "string"
+   * }
+   * @responseBody 200 - { "message": "Email verified successfully." }
+   * @responseBody 400 - { "errors": [{ "message": "Invalid verification code." }] }
+   * @responseBody 404 - { "errors": [{ "message": "Artist not found." }] }
    */
   public async verifyEmail({ request, response }: HttpContextContract) {
     const { email, code } = request.only(['email', 'code'])
@@ -161,44 +103,17 @@ export default class AuthController {
   }
 
   /**
-   * @swagger
-   * /login:
-   *   post:
-   *     tags:
-   *       - Authentication
-   *     summary: Log in an artist
-   *     description: Log in an artist and return an API token.
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - email
-   *               - password
-   *             properties:
-   *               email:
-   *                 type: string
-   *                 format: email
-   *               password:
-   *                 type: string
-   *     responses:
-   *       200:
-   *         description: Login successful.
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                 token:
-   *                   type: object
-   *       400:
-   *         description: Invalid credentials.
-   *       401:
-   *         description: Email not verified.
+   * @login
+   * @summary Log in an artist
+   * @description Logs in an artist and returns an API token.
+   * @requestBody
+   * {
+   *   "email": "string",
+   *   "password": "string"
+   * }
+   * @responseBody 200 - { "message": "Login successful.", "token": { "type": "object" } }
+   * @responseBody 400 - { "errors": [{ "message": "Invalid credentials." }] }
+   * @responseBody 401 - { "errors": [{ "message": "Email not verified." }] }
    */
   public async login({ request, auth, response }: HttpContextContract) {
     const { email, password } = request.only(['email', 'password'])
@@ -224,30 +139,15 @@ export default class AuthController {
   }
 
   /**
-   * @swagger
-   * /request-password-reset:
-   *   post:
-   *     tags:
-   *       - Authentication
-   *     summary: Request password reset
-   *     description: Request a password reset. Sends a reset link to the artist's email address.
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - email
-   *             properties:
-   *               email:
-   *                 type: string
-   *                 format: email
-   *     responses:
-   *       200:
-   *         description: Password reset link sent to your email.
-   *       404:
-   *         description: Artist not found.
+   * @requestPasswordReset
+   * @summary Request password reset
+   * @description Requests a password reset. Sends a reset link to the artist's email address.
+   * @requestBody
+   * {
+   *   "email": "string"
+   * }
+   * @responseBody 200 - { "message": "Password reset link sent to your email." }
+   * @responseBody 404 - { "errors": [{ "message": "Artist not found." }] }
    */
   public async requestPasswordReset({ request, response }: HttpContextContract) {
     const { email } = request.only(['email'])
@@ -268,34 +168,17 @@ export default class AuthController {
   }
 
   /**
-   * @swagger
-   * /reset-password:
-   *   post:
-   *     tags:
-   *       - Authentication
-   *     summary: Reset password
-   *     description: Reset the artist's password using a valid reset token.
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - token
-   *               - password
-   *             properties:
-   *               token:
-   *                 type: string
-   *               password:
-   *                 type: string
-   *               password_confirmation:
-   *                 type: string
-   *     responses:
-   *       200:
-   *         description: Password reset successfully.
-   *       400:
-   *         description: Invalid or expired token.
+   * @resetPassword
+   * @summary Reset password
+   * @description Resets the artist's password using a valid reset token.
+   * @requestBody
+   * {
+   *   "token": "string",
+   *   "password": "string",
+   *   "password_confirmation": "string"
+   * }
+   * @responseBody 200 - { "message": "Password reset successfully." }
+   * @responseBody 400 - { "errors": [{ "message": "Invalid or expired token." }] }
    */
   public async resetPassword({ request, response }: HttpContextContract) {
     const resetSchema = schema.create({

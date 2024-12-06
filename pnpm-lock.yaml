@@ -88,7 +88,7 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
       typescript:
-        specifier: ~4.6
+        specifier: ~4.6.4
         version: 4.6.4
       youch:
         specifier: ^3.3.4

@@ -9,6 +9,8 @@
   ],
   "compilerOptions": {
     "outDir": "build",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "rootDir": "./",
     "baseUrl": "./",
     "sourceMap": true,

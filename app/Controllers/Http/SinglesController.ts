@@ -22,7 +22,8 @@ export default class SinglesController {
   //TODO: error case + code d'erreur personaliser
   //TODO: Optimise genres tables
   //TODO: Featuring aren't added to the single title
-
+  //TODO: api_tokens aren't removed when new created or expiration delay too long
+  //TODO: le serveur ne doit pas lacher a cause d'une erreur 500, etc..
   /**
    * @swagger
    * /singles:

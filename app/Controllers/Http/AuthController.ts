@@ -1,12 +1,11 @@
 import EmailService from 'App/Services/EmailService'
 import Artist from 'App/Models/Artist'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import AuthValidator from 'App/Validators/AuthValidator'
 import { randomBytes } from 'crypto'
 import { DateTime } from 'luxon'
-import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
 export default class AuthController {
-
   /**
    * @register
    * @summary Register a new artist
@@ -22,34 +21,12 @@ export default class AuthController {
    * @responseBody 400 - { "errors": [{ "field": "email", "message": "Validation or registration failed." }] }
    */
   public async register({ request, response }: HttpContextContract) {
-    const artistSchema = schema.create({
-      email: schema.string({}, [
-        rules.email(),
-        rules.normalizeEmail({ allLowercase: true }),
-        rules.maxLength(255),
-      ]),
-      password: schema.string({}, [
-        rules.confirmed(),
-        rules.minLength(8),
-      ]),
-      name: schema.string({}, [rules.maxLength(255)]),
-    })
-
-    const messages = {
-      'email.required': 'Email is required.',
-      'email.email': 'Please provide a valid email address.',
-      'email.maxLength': 'Email cannot be longer than 255 characters.',
-      'password.required': 'Password is required.',
-      'password.minLength': 'Password must be at least 8 characters long.',
-      'password_confirmation.confirmed': 'Password confirmation does not match.',
-      'name.required': 'Name is required.',
-      'name.maxLength': 'Name cannot be longer than 255 characters.',
-    }
-
     try {
-      const data = await request.validate({ schema: artistSchema, messages })
+      const data = await request.validate({
+        schema: AuthValidator.registerSchema,
+        messages: AuthValidator.messages,
+      })
 
-      // Vérifie si l'email est déjà utilisé
       const existingArtist = await Artist.findBy('email', data.email.toLowerCase())
       if (existingArtist) {
         return response.badRequest({
@@ -62,11 +39,10 @@ export default class AuthController {
 
       return response.created({ message: 'Artist registered successfully. Please verify your email.' })
     } catch (error) {
-      if (error.messages) {
+      if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
-      } else {
-        return response.badRequest({ errors: [{ message: 'Registration failed.' }] })
       }
+      return response.internalServerError({ errors: [{ message: 'Registration failed due to an internal error.' }] })
     }
   }
 
@@ -84,21 +60,31 @@ export default class AuthController {
    * @responseBody 404 - { "errors": [{ "message": "Artist not found." }] }
    */
   public async verifyEmail({ request, response }: HttpContextContract) {
-    const { email, code } = request.only(['email', 'code'])
-    const artist = await Artist.findBy('email', email.toLowerCase())
+    try {
+      const data = await request.validate({
+        schema: AuthValidator.verifyEmailSchema,
+        messages: AuthValidator.messages,
+      })
 
-    if (!artist) {
-      return response.notFound({ errors: [{ message: 'Artist not found.' }] })
-    }
+      const artist = await Artist.findBy('email', data.email.toLowerCase())
+      if (!artist) {
+        return response.notFound({ errors: [{ message: 'Artist not found.' }] })
+      }
 
-    if (artist.verificationCode === code) {
-      artist.isVerified = true
-      artist.verificationCode = null
-      await artist.save()
+      if (artist.verificationCode === data.code) {
+        artist.isVerified = true
+        artist.verificationCode = null
+        await artist.save()
 
-      return response.ok({ message: 'Email verified successfully.' })
-    } else {
-      return response.badRequest({ errors: [{ message: 'Invalid verification code.' }] })
+        return response.ok({ message: 'Email verified successfully.' })
+      } else {
+        return response.badRequest({ errors: [{ message: 'Invalid verification code.' }] })
+      }
+    } catch (error) {
+      if (error.messages?.errors) {
+        return response.badRequest({ errors: error.messages.errors })
+      }
+      return response.internalServerError({ errors: [{ message: 'Verification failed due to an internal error.' }] })
     }
   }
 
@@ -116,25 +102,35 @@ export default class AuthController {
    * @responseBody 401 - { "errors": [{ "message": "Email not verified." }] }
    */
   public async login({ request, auth, response }: HttpContextContract) {
-    const { email, password } = request.only(['email', 'password'])
-
-    const artist = await Artist.findBy('email', email.toLowerCase())
-    if (!artist) {
-      return response.badRequest({ errors: [{ message: 'Invalid credentials.' }] })
-    }
-
-    if (!artist.isVerified) {
-      return response.unauthorized({ errors: [{ message: 'Email not verified.' }] })
-    }
-
     try {
-      const token = await auth.use('api').attempt(email.toLowerCase(), password, {
-        expiresIn: '7days',
+      const data = await request.validate({
+        schema: AuthValidator.loginSchema,
+        messages: AuthValidator.messages,
       })
 
-      return response.ok({ message: 'Login successful.', token })
-    } catch {
-      return response.badRequest({ errors: [{ message: 'Invalid credentials.' }] })
+      const artist = await Artist.findBy('email', data.email.toLowerCase())
+      if (!artist) {
+        return response.badRequest({ errors: [{ message: 'Invalid credentials.' }] })
+      }
+
+      if (!artist.isVerified) {
+        return response.unauthorized({ errors: [{ message: 'Email not verified.' }] })
+      }
+
+      try {
+        const token = await auth.use('api').attempt(data.email.toLowerCase(), data.password, {
+          expiresIn: '7days',
+        })
+
+        return response.ok({ message: 'Login successful.', token })
+      } catch {
+        return response.badRequest({ errors: [{ message: 'Invalid credentials.' }] })
+      }
+    } catch (error) {
+      if (error.messages?.errors) {
+        return response.badRequest({ errors: error.messages.errors })
+      }
+      return response.internalServerError({ errors: [{ message: 'Login failed due to an internal error.' }] })
     }
   }
 
@@ -150,21 +146,31 @@ export default class AuthController {
    * @responseBody 404 - { "errors": [{ "message": "Artist not found." }] }
    */
   public async requestPasswordReset({ request, response }: HttpContextContract) {
-    const { email } = request.only(['email'])
-    const artist = await Artist.findBy('email', email.toLowerCase())
+    try {
+      const data = await request.validate({
+        schema: AuthValidator.requestPasswordResetSchema,
+        messages: AuthValidator.messages,
+      })
 
-    if (!artist) {
-      return response.notFound({ errors: [{ message: 'Artist not found.' }] })
+      const artist = await Artist.findBy('email', data.email.toLowerCase())
+      if (!artist) {
+        return response.notFound({ errors: [{ message: 'Artist not found.' }] })
+      }
+
+      const resetToken = randomBytes(20).toString('hex')
+      artist.passwordResetToken = resetToken
+      artist.passwordResetExpiresAt = DateTime.now().plus({ hours: 1 })
+      await artist.save()
+
+      await EmailService.sendPasswordResetEmail(artist.email, resetToken)
+
+      return response.ok({ message: 'Password reset link sent to your email.' })
+    } catch (error) {
+      if (error.messages?.errors) {
+        return response.badRequest({ errors: error.messages.errors })
+      }
+      return response.internalServerError({ errors: [{ message: 'Request failed due to an internal error.' }] })
     }
-
-    const resetToken = randomBytes(20).toString('hex')
-    artist.passwordResetToken = resetToken
-    artist.passwordResetExpiresAt = DateTime.now().plus({ hours: 1 })
-    await artist.save()
-
-    await EmailService.sendPasswordResetEmail(artist.email, resetToken)
-
-    return response.ok({ message: 'Password reset link sent to your email.' })
   }
 
   /**
@@ -181,24 +187,13 @@ export default class AuthController {
    * @responseBody 400 - { "errors": [{ "message": "Invalid or expired token." }] }
    */
   public async resetPassword({ request, response }: HttpContextContract) {
-    const resetSchema = schema.create({
-      token: schema.string({}),
-      password: schema.string({}, [
-        rules.confirmed(),
-        rules.minLength(8),
-      ]),
-    })
-
-    const messages = {
-      'token.required': 'Reset token is required.',
-      'password.required': 'Password is required.',
-      'password.minLength': 'Password must be at least 8 characters long.',
-      'password_confirmation.confirmed': 'Password confirmation does not match.',
-    }
-
     try {
-      const { token, password } = await request.validate({ schema: resetSchema, messages })
-      const artist = await Artist.findBy('passwordResetToken', token)
+      const data = await request.validate({
+        schema: AuthValidator.resetPasswordSchema,
+        messages: AuthValidator.messages,
+      })
+
+      const artist = await Artist.findBy('passwordResetToken', data.token)
 
       if (
         !artist ||
@@ -208,18 +203,17 @@ export default class AuthController {
         return response.badRequest({ errors: [{ message: 'Invalid or expired token.' }] })
       }
 
-      artist.password = password
+      artist.password = data.password
       artist.passwordResetToken = null
       artist.passwordResetExpiresAt = null
       await artist.save()
 
       return response.ok({ message: 'Password reset successfully.' })
     } catch (error) {
-      if (error.messages) {
+      if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
-      } else {
-        return response.badRequest({ errors: [{ message: 'Password reset failed.' }] })
       }
+      return response.internalServerError({ errors: [{ message: 'Reset failed due to an internal error.' }] })
     }
   }
 }

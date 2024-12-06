@@ -216,4 +216,46 @@ export default class AuthController {
       return response.internalServerError({ errors: [{ message: 'Reset failed due to an internal error.' }] })
     }
   }
+
+  /**
+   * @logout
+   * @summary Log out the authenticated artist
+   * @description Logs out the currently authenticated artist by revoking the API token.
+   * @responseBody 200 - { "message": "Logged out successfully." }
+   * @responseBody 401 - { "errors": [{ "message": "Unauthorized." }] }
+   * @responseBody 500 - { "errors": [{ "message": "Logout failed due to an internal error." }] }
+   */
+  public async logout({ auth, response }: HttpContextContract) {
+    try {
+      // Le middleware auth garantit que l'utilisateur est authentifié
+      await auth.use('api').revoke()
+      return response.ok({ message: 'Logged out successfully.' })
+    } catch (error) {
+      return response.internalServerError({ errors: [{ message: 'Logout failed due to an internal error.' }] })
+    }
+  }
+
+  /**
+   * @deleteAccount
+   * @summary Delete the authenticated artist's account
+   * @description Permanently deletes the authenticated artist's account.
+   * @responseBody 200 - { "message": "Account deleted successfully." }
+   * @responseBody 401 - { "errors": [{ "message": "Unauthorized." }] }
+   * @responseBody 500 - { "errors": [{ "message": "Account deletion failed due to an internal error." }] }
+   */
+  public async deleteAccount({ auth, response }: HttpContextContract) {
+    try {
+      // Le middleware auth garantit que l'utilisateur est authentifié
+      const artist = auth.user
+      if (!artist) {
+        // Cas improbable si le middleware est bien configuré, mais on gère quand même
+        return response.unauthorized({ errors: [{ message: 'Unauthorized.' }] })
+      }
+
+      await artist.delete()
+      return response.ok({ message: 'Account deleted successfully.' })
+    } catch (error) {
+      return response.internalServerError({ errors: [{ message: 'Account deletion failed due to an internal error.' }] })
+    }
+  }
 }

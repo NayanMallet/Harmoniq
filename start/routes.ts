@@ -42,6 +42,8 @@ Route.group(() => {
   Route.post('/login', 'AuthController.login')
   Route.post('/request-password-reset', 'AuthController.requestPasswordReset')
   Route.post('/reset-password', 'AuthController.resetPassword')
+  Route.post('/logout', 'AuthController.logout').middleware('auth')
+  Route.delete('/delete-account', 'AuthController.deleteAccount').middleware('auth')
 })
   .prefix('/api/auth')
   .namespace('App/Controllers/Http')

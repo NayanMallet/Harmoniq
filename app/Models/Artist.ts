@@ -12,15 +12,60 @@ import Album from './Album'
 import Single from './Single'
 import Playlist from './Playlist'
 import Notification from './Notification'
-import { Location, SocialLinks } from '../../resources/utils/interfaces'
 import { Genre } from '../../resources/utils/GenreEnum'
+import { Location, SearchHistoryEntry } from '../../resources/utils/Interfaces'
 
-
+/**
+ * @swagger
+ * definitions:
+ *   Artist:
+ *     type: object
+ *     properties:
+ *       id:
+ *         type: number
+ *         description: Artist ID
+ *       email:
+ *         type: string
+ *         format: email
+ *         description: Artist email (lowercased)
+ *       name:
+ *         type: string
+ *         description: Artist name
+ *       biography:
+ *         type: string
+ *         description: Artist biography
+ *       social_links:
+ *         type: string
+ *         description: JSON stringified object of social links
+ *       location:
+ *         type: string
+ *         description: JSON stringified object containing country and city
+ *       search_history:
+ *         type: string
+ *         description: JSON stringified array of search entries
+ *       verificationCode:
+ *         type: string
+ *         description: Code used for verifying email (null if verified)
+ *       isVerified:
+ *         type: boolean
+ *         description: Whether artist verified email
+ *       popularity:
+ *         type: number
+ *         description: Artist popularity score
+ *       genres:
+ *         type: string
+ *         description: JSON stringified array of genres
+ *       createdAt:
+ *         type: string
+ *         format: date-time
+ *       updatedAt:
+ *         type: string
+ *         format: date-time
+ */
 export default class Artist extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
-  // Sérialisation de l'email en minuscule pour éviter les doublons liés à la casse.
   @column({ serialize: (value: string) => value.toLowerCase() })
   public email: string
 
@@ -33,33 +78,14 @@ export default class Artist extends BaseModel {
   @column()
   public biography?: string
 
-  // Sérialisation/Désérialisation JSON
-  @column({
-    prepare: (value: SocialLinks | null) => (value ? JSON.stringify(value) : null),
-    consume: (value: string | object | null) => {
-      if (!value) return null
-      if (typeof value === 'string') {
-        return JSON.parse(value)
-      } else {
-        // Si la valeur est déjà un objet, on la retourne directement
-        return value as SocialLinks
-      }
-    },
-  })
-  public socialLinks?: SocialLinks
+  @column()
+  public socialLinks?: Record<string, string> | null
 
-  @column({
-    prepare: (value: Location | null) => (value ? JSON.stringify(value) : null),
-    consume: (value: string | object | null) => {
-      if (!value) return null
-      if (typeof value === 'string') {
-        return JSON.parse(value)
-      } else {
-        return value as Location
-      }
-    },
-  })
-  public location?: Location
+  @column()
+  public location?: Location | null
+
+  @column()
+  public searchHistory?: SearchHistoryEntry[] | null
 
   @column({ serializeAs: null })
   public verificationCode?: string | null
@@ -76,18 +102,8 @@ export default class Artist extends BaseModel {
   @column()
   public popularity: number = 0
 
-  @column({
-    prepare: (value: Genre[] | null) => (value ? JSON.stringify(value) : null),
-    consume: (value: string | object | null) => {
-      if (!value) return null
-      if (typeof value === 'string') {
-        return JSON.parse(value) as Genre[]
-      } else {
-        return value as Genre[]
-      }
-    },
-  })
-  public genres?: Genre[]
+  @column()
+  public genres?: Genre[] | null
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -107,7 +123,6 @@ export default class Artist extends BaseModel {
     }
   }
 
-  // Relations
   @hasMany(() => Album)
   public albums: HasMany<typeof Album>
 

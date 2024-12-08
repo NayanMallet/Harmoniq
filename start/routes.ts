@@ -51,12 +51,15 @@ Route.group(() => {
 // Artist routes
 Route.group(() => {
   // Gestion des profils
-  Route.get('/', 'ProfilesController.index') // Lister tous les artistes avec filtres
-  Route.get('/:id', 'ProfilesController.show') // Voir un profil d'artiste
-  Route.put('/', 'ProfilesController.update').middleware('auth') // Mettre à jour le profil de l'artiste connecté
+  Route.get('/', 'ProfileController.index') // Lister tous les artistes avec filtres, suggestions, etc.
+  Route.get('/compare', 'ProfileController.compare') // Comparer des artistes par leurs IDs
+  Route.get('/:id', 'ProfileController.show') // Voir un profil d'artiste
+  Route.put('/', 'ProfileController.update').middleware('auth') // Mettre à jour le profil de l'artiste connecté
+  Route.delete('/history', 'ProfileController.clearHistory').middleware('auth') // Effacer l'historique de l'artiste connecté
 })
   .prefix('/api/artists')
   .namespace('App/Controllers/Http')
+
 
 // Singles routes
 Route.group(() => {

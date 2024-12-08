@@ -6,6 +6,7 @@ import { randomBytes } from 'crypto'
 import { DateTime } from 'luxon'
 
 export default class AuthController {
+
   /**
    * @register
    * @summary Register a new artist
@@ -30,7 +31,7 @@ export default class AuthController {
       const existingArtist = await Artist.findBy('email', data.email.toLowerCase())
       if (existingArtist) {
         return response.badRequest({
-          errors: [{ field: 'email', message: 'Email already registered.' }],
+          errors: [{ field: 'email', message: 'Email already registered.', code: 'EMAIL_TAKEN' }],
         })
       }
 
@@ -42,7 +43,7 @@ export default class AuthController {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Registration failed due to an internal error.' }] })
+      return response.internalServerError({ errors: [{ message: 'Registration failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
     }
   }
 
@@ -68,7 +69,7 @@ export default class AuthController {
 
       const artist = await Artist.findBy('email', data.email.toLowerCase())
       if (!artist) {
-        return response.notFound({ errors: [{ message: 'Artist not found.' }] })
+        return response.notFound({ errors: [{ message: 'Artist not found.', code: 'ARTIST_NOT_FOUND' }] })
       }
 
       if (artist.verificationCode === data.code) {
@@ -78,13 +79,13 @@ export default class AuthController {
 
         return response.ok({ message: 'Email verified successfully.' })
       } else {
-        return response.badRequest({ errors: [{ message: 'Invalid verification code.' }] })
+        return response.badRequest({ errors: [{ message: 'Invalid verification code.', code: 'INVALID_CODE' }] })
       }
     } catch (error) {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Verification failed due to an internal error.' }] })
+      return response.internalServerError({ errors: [{ message: 'Verification failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
     }
   }
 
@@ -110,11 +111,11 @@ export default class AuthController {
 
       const artist = await Artist.findBy('email', data.email.toLowerCase())
       if (!artist) {
-        return response.badRequest({ errors: [{ message: 'Invalid credentials.' }] })
+        return response.badRequest({ errors: [{ message: 'Invalid credentials.', code: 'INVALID_CREDENTIALS' }] })
       }
 
       if (!artist.isVerified) {
-        return response.unauthorized({ errors: [{ message: 'Email not verified.' }] })
+        return response.unauthorized({ errors: [{ message: 'Email not verified.', code: 'EMAIL_NOT_VERIFIED' }] })
       }
 
       try {
@@ -124,13 +125,13 @@ export default class AuthController {
 
         return response.ok({ message: 'Login successful.', token })
       } catch {
-        return response.badRequest({ errors: [{ message: 'Invalid credentials.' }] })
+        return response.badRequest({ errors: [{ message: 'Invalid credentials.', code: 'INVALID_CREDENTIALS' }] })
       }
     } catch (error) {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Login failed due to an internal error.' }] })
+      return response.internalServerError({ errors: [{ message: 'Login failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
     }
   }
 
@@ -154,7 +155,7 @@ export default class AuthController {
 
       const artist = await Artist.findBy('email', data.email.toLowerCase())
       if (!artist) {
-        return response.notFound({ errors: [{ message: 'Artist not found.' }] })
+        return response.notFound({ errors: [{ message: 'Artist not found.', code: 'ARTIST_NOT_FOUND' }] })
       }
 
       const resetToken = randomBytes(20).toString('hex')
@@ -169,7 +170,7 @@ export default class AuthController {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Request failed due to an internal error.' }] })
+      return response.internalServerError({ errors: [{ message: 'Request failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
     }
   }
 
@@ -200,7 +201,7 @@ export default class AuthController {
         !artist.passwordResetExpiresAt ||
         artist.passwordResetExpiresAt < DateTime.now()
       ) {
-        return response.badRequest({ errors: [{ message: 'Invalid or expired token.' }] })
+        return response.badRequest({ errors: [{ message: 'Invalid or expired token.', code: 'TOKEN_INVALID' }] })
       }
 
       artist.password = data.password
@@ -213,7 +214,7 @@ export default class AuthController {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Reset failed due to an internal error.' }] })
+      return response.internalServerError({ errors: [{ message: 'Reset failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
     }
   }
 
@@ -231,7 +232,7 @@ export default class AuthController {
       await auth.use('api').revoke()
       return response.ok({ message: 'Logged out successfully.' })
     } catch (error) {
-      return response.internalServerError({ errors: [{ message: 'Logout failed due to an internal error.' }] })
+      return response.internalServerError({ errors: [{ message: 'Logout failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
     }
   }
 
@@ -249,13 +250,13 @@ export default class AuthController {
       const artist = auth.user
       if (!artist) {
         // Cas improbable si le middleware est bien configuré, mais on gère quand même
-        return response.unauthorized({ errors: [{ message: 'Unauthorized.' }] })
+        return response.unauthorized({ errors: [{ message: 'Unauthorized.', code: 'UNAUTHORIZED' }] })
       }
 
       await artist.delete()
       return response.ok({ message: 'Account deleted successfully.' })
     } catch (error) {
-      return response.internalServerError({ errors: [{ message: 'Account deletion failed due to an internal error.' }] })
+      return response.internalServerError({ errors: [{ message: 'Account deletion failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
     }
   }
 }

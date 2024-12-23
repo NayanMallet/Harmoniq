@@ -26,7 +26,7 @@ export default class Album extends BaseModel {
   public artistId: number
 
   @column()
-  public genreIds?: number[]
+  public genresId?: number[]
 
   @column.dateTime()
   public releaseDate?: DateTime

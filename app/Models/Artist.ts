@@ -29,7 +29,7 @@ export default class Artist extends BaseModel {
   public name: string
 
   @column()
-  public genreIds?: number[]
+  public genresId?: number[]
 
   @column()
   public biography?: string

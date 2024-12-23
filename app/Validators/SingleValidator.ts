@@ -4,7 +4,7 @@ import { schema, rules, CustomMessages } from '@ioc:Adonis/Core/Validator'
 export default class SingleValidator {
   public static createSchema = schema.create({
     title: schema.string({}, [rules.maxLength(255)]),
-    genreId: schema.number([rules.exists({ table: 'genre', column: 'id' })]),
+    genreId: schema.number([rules.exists({ table: 'genres', column: 'id' })]),
     releaseDate: schema.date.optional({ format: 'yyyy-MM-dd' }),
     albumId: schema.number.optional([rules.exists({ table: 'albums', column: 'id' })]),
     metadata: schema.object().members({
@@ -23,7 +23,7 @@ export default class SingleValidator {
 
   public static updateSchema = schema.create({
     title: schema.string.optional({}, [rules.maxLength(255)]),
-    genreId: schema.number([rules.exists({ table: 'genre', column: 'id' })]),
+    genreId: schema.number([rules.exists({ table: 'genres', column: 'id' })]),
     releaseDate: schema.date.optional({ format: 'yyyy-MM-dd' }),
     albumId: schema.number.optional([rules.exists({ table: 'albums', column: 'id' })]),
     metadata: schema.object.optional().members({

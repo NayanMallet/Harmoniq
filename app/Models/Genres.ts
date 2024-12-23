@@ -6,7 +6,7 @@ import Album from 'App/Models/Album'
 import Artist from 'App/Models/Artist'
 
 //relation ManyToMany
-export default class Genre extends BaseModel {
+export default class Genres extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
@@ -26,7 +26,7 @@ export default class Genre extends BaseModel {
   public updatedAt: DateTime
 
   @beforeSave()
-  public static async generateSlug(genre: Genre) {
+  public static async generateSlug(genre: Genres) {
     genre.slug = slugify(genre.name)
   }
 

@@ -36,9 +36,11 @@ export default class CreateAllTables extends BaseSchema {
     })
 
     // Table des genres
-    this.schema.createTable('genre', (table) => {
+    this.schema.createTable('genres', (table) => {
       table.increments('id')
-      table.string('name').notNullable()
+      table.string('name').notNullable().unique()
+      table.string('description').nullable()
+      table.string('slug').notNullable().unique()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })
@@ -52,7 +54,7 @@ export default class CreateAllTables extends BaseSchema {
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
       table.integer('genre_id').unsigned().notNullable()
-        .references('id').inTable('genre')
+        .references('id').inTable('genres')
       table.timestamp('release_date', { useTz: true }).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
@@ -168,7 +170,7 @@ export default class CreateAllTables extends BaseSchema {
     this.schema.dropTable('metadata')
     this.schema.dropTable('singles')
     this.schema.dropTable('albums')
-    this.schema.dropTable('genre')
+    this.schema.dropTable('genres')
     this.schema.dropTable('artists')
   }
 }

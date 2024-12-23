@@ -28,7 +28,7 @@ export default class ProfilesController {
       })
 
       // Champs non modifiables par l'utilisateur
-      const nonUpdatableFields = ['genreIds', 'popularity', 'isVerified', 'verificationCode', 'passwordResetToken', 'passwordResetExpiresAt']
+      const nonUpdatableFields = ['genres_id', 'popularity', 'isVerified', 'verificationCode', 'passwordResetToken', 'passwordResetExpiresAt']
       const receivedKeys = Object.keys(request.body())
       const forbiddenKeys = receivedKeys.filter((key) => nonUpdatableFields.includes(key))
 
@@ -44,13 +44,13 @@ export default class ProfilesController {
 
       if (payload.biography) updateData.biography = payload.biography
       if (payload.socialLinks) {
-        // updateData.socialLinks = JSON.stringify(payload.socialLinks)
-        updateData.socialLinks = payload.socialLinks
+        updateData.socialLinks = JSON.stringify(payload.socialLinks)
+        // updateData.socialLinks = payload.socialLinks
 
       }
       if (payload.location) {
-        // updateData.location = JSON.stringify(payload.location)
-        updateData.location = payload.location
+        updateData.location = JSON.stringify(payload.location)
+        // updateData.location = payload.location
       }
 
       artist.merge(updateData)

@@ -9,7 +9,7 @@ export default class ProfileValidator {
    * Validation pour la recherche d’artistes (index)
    */
   public static searchSchema = schema.create({
-    // genre: schema.enum.optional(Object.values(Genre)),
+    // genre: schema.enum.optional(Object.values(Genres)),
     country: schema.string.optional({}, [
       rules.minLength(2),
       rules.maxLength(255),
@@ -57,7 +57,7 @@ export default class ProfileValidator {
   })
 
   public static messages: CustomMessages = {
-    'genre.maxLength': 'Genre query is too long.',
+    'genre.maxLength': 'Genres query is too long.',
     'country.maxLength': 'Country cannot exceed 255 characters.',
     'country.regex': 'Country must be letters only.',
     'city.maxLength': 'City name cannot exceed 255 characters.',

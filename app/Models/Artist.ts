@@ -13,7 +13,7 @@ import Single from './Single'
 import Playlist from './Playlist'
 import Notification from './Notification'
 import { Location, SearchHistoryEntry } from '../../resources/utils/Interfaces'
-import Genre from 'App/Models/Genre'
+import Genres from 'App/Models/Genres'
 
 export default class Artist extends BaseModel {
   @column({ isPrimary: true })
@@ -79,8 +79,8 @@ export default class Artist extends BaseModel {
   @hasMany(() => Album)
   public albums: HasMany<typeof Album>
 
-  @hasMany(() => Genre)
-  public genre: HasMany<typeof Genre>
+  @hasMany(() => Genres)
+  public genre: HasMany<typeof Genres>
 
   @hasMany(() => Single)
   public singles: HasMany<typeof Single>

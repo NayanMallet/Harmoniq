@@ -14,7 +14,7 @@ import Artist from './Artist'
 import Album from './Album'
 import Metadata from './Metadata'
 import Stat from './Stat'
-import Genre from 'App/Models/Genre'
+import Genres from 'App/Models/Genres'
 
 export default class Single extends BaseModel {
   @column({ isPrimary: true })
@@ -41,8 +41,8 @@ export default class Single extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @hasOne(() => Genre)
-  public genre: HasOne<typeof Genre>
+  @hasOne(() => Genres)
+  public genre: HasOne<typeof Genres>
 
   @belongsTo(() => Album)
   public album: BelongsTo<typeof Album>

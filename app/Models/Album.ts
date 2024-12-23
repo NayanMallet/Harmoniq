@@ -13,7 +13,7 @@ import {
 import Artist from './Artist'
 import Single from './Single'
 import Metadata from './Metadata'
-import Genre from 'App/Models/Genre'
+import Genres from 'App/Models/Genres'
 
 export default class Album extends BaseModel {
   @column({ isPrimary: true })
@@ -48,6 +48,6 @@ export default class Album extends BaseModel {
   @hasMany(() => Single)
   public singles: HasMany<typeof Single>
 
-  @hasMany(() => Genre)
-  public genre: HasMany<typeof Genre>
+  @hasMany(() => Genres)
+  public genre: HasMany<typeof Genres>
 }

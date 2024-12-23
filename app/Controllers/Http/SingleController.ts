@@ -217,7 +217,7 @@ export default class SinglesController {
     const single = await Single.query()
       .where('id', params.id)
       .preload('artist')
-      // .preload('genre')
+      // .preload('genres')
       .preload('metadata', (metadataQuery) => {
         metadataQuery.preload('copyrights')
       })
@@ -255,19 +255,20 @@ export default class SinglesController {
   private async updateArtistGenres(artist: Artist) {
     const singlesGenres = await Database.from('singles')
       .where('artist_id', artist.id)
-      .groupBy('genre')
+      .groupBy('genre_id')
       .count('* as count')
-      .select('genre')
+      .select('genre_id')
 
     const genreCounts: Record<string, number> = {}
     singlesGenres.forEach((row) => {
-      const g = row.genre
+      const g = row.genre_id
       const c = Number(row.count)
       genreCounts[g] = (genreCounts[g] || 0) + c
     })
-
+    // TODO: fix this
     const sortedGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b]! - genreCounts[a]!)
-    artist.genreIds = sortedGenres.slice(0, 3).map((g) => parseInt(g))
+    // @ts-ignore
+    artist.genresId = JSON.stringify(sortedGenres.slice(0, 3).map((g) => parseInt(g)))
     await artist.save()
   }
 
@@ -277,12 +278,12 @@ export default class SinglesController {
 
     const singlesGenres = await Database.from('singles')
       .where('album_id', album.id)
-      .distinct('genre')
-      .select('genre')
-
-    const genres = singlesGenres.map((row) => row.genre)
-    const uniqueGenres = Array.from(new Set(genres))
-    album.genreIds = uniqueGenres
+      .distinct('genre_id')
+      .select('genre_id')
+    // TODO: fix this
+    const genres = singlesGenres.map((row) => row.genre_id)
+    // @ts-ignore
+    album.genresId = JSON.stringify(Array.from(new Set(genres)))
     await album.save()
   }
 }

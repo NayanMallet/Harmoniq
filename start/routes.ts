@@ -63,20 +63,30 @@ Route.group(() => {
 
 // Singles routes
 Route.group(() => {
-  Route.post('/', 'SinglesController.create').middleware('auth')
-  Route.put('/:id', 'SinglesController.update').middleware('auth')
-  Route.get('/:id', 'SinglesController.show')
-  Route.delete('/:id', 'SinglesController.delete').middleware('auth')
+  Route.post('/', 'SingleController.create').middleware('auth')
+  Route.put('/:id', 'SingleController.update').middleware('auth')
+  Route.get('/:id', 'SingleController.show')
+  Route.delete('/:id', 'SingleController.delete').middleware('auth')
 })
   .prefix('/api/singles')
   .namespace('App/Controllers/Http')
 
 // Albums routes
 Route.group(() => {
-  Route.post('/', 'AlbumsController.create').middleware('auth')
-  Route.put('/:id', 'AlbumsController.update').middleware('auth')
-  Route.get('/:id', 'AlbumsController.show')
-  Route.delete('/:id', 'AlbumsController.delete').middleware('auth')
+  Route.post('/', 'AlbumController.create').middleware('auth')
+  Route.put('/:id', 'AlbumController.update').middleware('auth')
+  Route.get('/:id', 'AlbumController.show')
+  Route.delete('/:id', 'AlbumController.delete').middleware('auth')
 })
   .prefix('/api/albums')
+  .namespace('App/Controllers/Http')
+
+// Genres routes
+Route.group(() => {
+  Route.post('/', 'GenresController.create').middleware('auth')
+  Route.post('/init', 'GenresController.init').middleware('auth')
+  Route.get('/', 'GenresController.index')
+  Route.delete('/:id', 'GenresController.delete').middleware('auth')
+})
+  .prefix('/api/genres')
   .namespace('App/Controllers/Http')

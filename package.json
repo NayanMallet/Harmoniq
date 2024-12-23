@@ -68,6 +68,7 @@
     "mysql2": "^3.11.4",
     "proxy-addr": "^2.0.7",
     "reflect-metadata": "^0.2.2",
+    "slugify": "^1.6.6",
     "source-map-support": "^0.5.21"
   }
 }

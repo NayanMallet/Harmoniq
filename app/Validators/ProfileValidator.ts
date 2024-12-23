@@ -1,15 +1,15 @@
 import { schema, rules, CustomMessages } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { Genre } from '../../resources/utils/GenreEnum'
 
 export default class ProfileValidator {
   constructor(protected ctx: HttpContextContract) {}
 
+  //TODO: Remettre tris par genre
   /**
    * Validation pour la recherche d’artistes (index)
    */
   public static searchSchema = schema.create({
-    genre: schema.enum.optional(Object.values(Genre)),
+    // genre: schema.enum.optional(Object.values(Genre)),
     country: schema.string.optional({}, [
       rules.minLength(2),
       rules.maxLength(255),

@@ -1,5 +1,4 @@
 // app/Models/Single.ts
-
 import { DateTime } from 'luxon'
 import {
   BaseModel,
@@ -7,40 +6,16 @@ import {
   belongsTo,
   BelongsTo,
   hasOne,
-  HasOne, ManyToMany, manyToMany,
+  HasOne,
+  manyToMany,
+  ManyToMany,
 } from '@ioc:Adonis/Lucid/Orm'
 import Artist from './Artist'
 import Album from './Album'
 import Metadata from './Metadata'
 import Stat from './Stat'
-import { Genre } from '../../resources/utils/GenreEnum'
+import Genre from 'App/Models/Genre'
 
-/**
- * @swagger
- * definitions:
- *   Single:
- *     type: object
- *     properties:
- *       id:
- *         type: integer
- *       title:
- *         type: string
- *       albumId:
- *         type: integer
- *       artistId:
- *         type: integer
- *       genre:
- *         $ref: '#/definitions/Genre'
- *       releaseDate:
- *         type: string
- *         format: date-time
- *       createdAt:
- *         type: string
- *         format: date-time
- *       updatedAt:
- *         type: string
- *         format: date-time
- */
 export default class Single extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -55,7 +30,7 @@ export default class Single extends BaseModel {
   public artistId: number
 
   @column()
-  public genre: Genre
+  public genreId: number
 
   @column.dateTime()
   public releaseDate?: DateTime
@@ -66,7 +41,9 @@ export default class Single extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  // Relations
+  @hasOne(() => Genre)
+  public genre: HasOne<typeof Genre>
+
   @belongsTo(() => Album)
   public album: BelongsTo<typeof Album>
 

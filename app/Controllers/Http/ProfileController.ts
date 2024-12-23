@@ -28,7 +28,7 @@ export default class ProfilesController {
       })
 
       // Champs non modifiables par l'utilisateur
-      const nonUpdatableFields = ['genres', 'popularity', 'isVerified', 'verificationCode', 'passwordResetToken', 'passwordResetExpiresAt']
+      const nonUpdatableFields = ['genreIds', 'popularity', 'isVerified', 'verificationCode', 'passwordResetToken', 'passwordResetExpiresAt']
       const receivedKeys = Object.keys(request.body())
       const forbiddenKeys = receivedKeys.filter((key) => nonUpdatableFields.includes(key))
 
@@ -77,17 +77,26 @@ export default class ProfilesController {
     }
   }
 
+  /**
+   * @show
+   * @operationId getArtistProfile
+   * @description Retrieves the profile of an artist by ID.
+   * @parameters
+   *   - (path) id {number} - The ID of the artist to retrieve.
+   * @responseBody 200 - <Artist> - Artist profile retrieved successfully.
+   * @responseBody 404 - {"errors": [{"message":"Artist not found."}]}
+   */
   public async show({ params, response }: HttpContextContract) {
     const artist = await Artist.find(params.id)
 
     if (!artist) {
-      return response.notFound({ errors: [{ message: 'Artist not found.' }] })
+      return response.status(404).json({
+        errors: [{ message: 'Artist not found.', code: 'ARTIST_NOT_FOUND' }],
+      })
     }
 
     return response.ok(artist)
   }
-
-
 
 
   // public async index({ request, response, auth }: HttpContextContract) {

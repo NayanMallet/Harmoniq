@@ -1,7 +1,6 @@
 // database/migrations/xxxx_create_all_tables.ts
 
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
-import { Genre } from '../../resources/utils/GenreEnum'
 
 export default class CreateAllTables extends BaseSchema {
   public async up() {
@@ -19,9 +18,8 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('password_reset_expires_at', { useTz: true }).nullable()
       table.boolean('is_verified').notNullable().defaultTo(false)
       table.integer('popularity').notNullable().defaultTo(0)
-      table.json('genres').nullable() // Tableau de genres
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.json('genreIds').nullable() // Tableau d'ids de genres
+      table.timestamps(true, true)
     })
 
     // Table des albums
@@ -30,10 +28,9 @@ export default class CreateAllTables extends BaseSchema {
       table.string('title').notNullable()
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
-      table.json('genres').nullable() // Tableau de genres
+      table.json('genreIds').nullable() // Tableau de genres
       table.timestamp('release_date', { useTz: true }).nullable()
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
     })
 
     // Table des singles
@@ -44,10 +41,18 @@ export default class CreateAllTables extends BaseSchema {
         .references('id').inTable('albums').onDelete('SET NULL')
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
-      table.enum('genre', Object.values(Genre)).notNullable()
+      table.integer('genreId').unsigned().notNullable()
       table.timestamp('release_date', { useTz: true }).nullable()
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
+    })
+
+    // Table des genres
+    this.schema.createTable('genre', (table) => {
+      table.increments('id')
+      table.string('name').notNullable().unique()
+      table.string('description').nullable()
+      table.string('slug').notNullable().unique()
+      table.timestamps(true, true)
     })
 
     // Table des métadonnées
@@ -59,8 +64,7 @@ export default class CreateAllTables extends BaseSchema {
         .references('id').inTable('albums').onDelete('CASCADE')
       table.string('cover_url').notNullable()
       table.text('lyrics').nullable()
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
 
       // Contrainte pour s'assurer que soit single_id, soit album_id est présent, mais pas les deux
       table.check(
@@ -78,8 +82,7 @@ export default class CreateAllTables extends BaseSchema {
       table.string('owner_name').nullable()
       table.string('role').notNullable()
       table.float('percentage').notNullable()
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
 
       // Contrainte pour s'assurer que le pourcentage est entre 0 et 100
       table.check('percentage >= 0 AND percentage <= 100')
@@ -92,8 +95,7 @@ export default class CreateAllTables extends BaseSchema {
         .references('id').inTable('singles').onDelete('CASCADE')
       table.integer('listens_count').notNullable().defaultTo(0)
       table.decimal('revenue', 10, 2).notNullable().defaultTo(0.0)
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
     })
 
     // Table des playlists
@@ -102,8 +104,7 @@ export default class CreateAllTables extends BaseSchema {
       table.string('title').notNullable()
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
     })
 
     // Table pivot playlists - singles
@@ -123,8 +124,7 @@ export default class CreateAllTables extends BaseSchema {
         .references('id').inTable('artists').onDelete('CASCADE')
       table.text('message').notNullable()
       table.boolean('is_read').notNullable().defaultTo(false)
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
     })
 
     // Table des tokens API
@@ -135,8 +135,7 @@ export default class CreateAllTables extends BaseSchema {
       table.string('name').notNullable()
       table.string('type').notNullable()
       table.string('token', 64).notNullable().unique()
-      table.timestamp('expires_at', { useTz: true }).nullable()
-      table.timestamp('created_at', { useTz: true }).notNullable()
+      table.timestamps(true, true)
     })
 
     // Table pivot pour les featurings
@@ -161,5 +160,6 @@ export default class CreateAllTables extends BaseSchema {
     this.schema.dropTable('singles')
     this.schema.dropTable('albums')
     this.schema.dropTable('artists')
+    this.schema.dropTable('genre')
   }
 }

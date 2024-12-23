@@ -12,56 +12,9 @@ import Album from './Album'
 import Single from './Single'
 import Playlist from './Playlist'
 import Notification from './Notification'
-import { Genre } from '../../resources/utils/GenreEnum'
 import { Location, SearchHistoryEntry } from '../../resources/utils/Interfaces'
+import Genre from 'App/Models/Genre'
 
-/**
- * @swagger
- * definitions:
- *   Artist:
- *     type: object
- *     properties:
- *       id:
- *         type: number
- *         description: Artist ID
- *       email:
- *         type: string
- *         format: email
- *         description: Artist email (lowercased)
- *       name:
- *         type: string
- *         description: Artist name
- *       biography:
- *         type: string
- *         description: Artist biography
- *       social_links:
- *         type: string
- *         description: JSON stringified object of social links
- *       location:
- *         type: string
- *         description: JSON stringified object containing country and city
- *       search_history:
- *         type: string
- *         description: JSON stringified array of search entries
- *       verificationCode:
- *         type: string
- *         description: Code used for verifying email (null if verified)
- *       isVerified:
- *         type: boolean
- *         description: Whether artist verified email
- *       popularity:
- *         type: number
- *         description: Artist popularity score
- *       genres:
- *         type: string
- *         description: JSON stringified array of genres
- *       createdAt:
- *         type: string
- *         format: date-time
- *       updatedAt:
- *         type: string
- *         format: date-time
- */
 export default class Artist extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -74,6 +27,9 @@ export default class Artist extends BaseModel {
 
   @column()
   public name: string
+
+  @column()
+  public genreIds?: number[]
 
   @column()
   public biography?: string
@@ -102,9 +58,6 @@ export default class Artist extends BaseModel {
   @column()
   public popularity: number = 0
 
-  @column()
-  public genres?: Genre[] | null
-
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
@@ -125,6 +78,9 @@ export default class Artist extends BaseModel {
 
   @hasMany(() => Album)
   public albums: HasMany<typeof Album>
+
+  @hasMany(() => Genre)
+  public genre: HasMany<typeof Genre>
 
   @hasMany(() => Single)
   public singles: HasMany<typeof Single>

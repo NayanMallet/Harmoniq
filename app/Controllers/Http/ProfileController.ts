@@ -75,15 +75,6 @@ export default class ProfilesController {
     }
   }
 
-  // const single = await Single.query()
-  //   .where('id', params.id)
-  //   .preload('artist')
-  //   // .preload('genres')
-  //   .preload('metadata', (metadataQuery) => {
-  //     metadataQuery.preload('copyrights')
-  //   })
-  //   .first()
-
   /**
    * @show
    * @operationId showArtistProfile

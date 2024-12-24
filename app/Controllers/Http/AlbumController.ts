@@ -1,9 +1,11 @@
 // app/Controllers/Http/AlbumsController.ts
+
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Album from 'App/Models/Album'
 import Artist from 'App/Models/Artist'
 import Metadata from 'App/Models/Metadata'
 import AlbumValidator from 'App/Validators/AlbumValidator'
+import GenreService from 'App/Services/GenreService'
 
 export default class AlbumsController {
   /**
@@ -17,7 +19,6 @@ export default class AlbumsController {
    */
   public async create({ auth, request, response }: HttpContextContract) {
     const artist = auth.user as Artist
-
     try {
       const payload = await request.validate({
         schema: AlbumValidator.createSchema,
@@ -57,9 +58,7 @@ export default class AlbumsController {
    */
   public async update({ auth, request, response, params }: HttpContextContract) {
     const artist = auth.user as Artist
-    const albumId = params.id
-
-    const album = await Album.find(albumId)
+    const album = await Album.find(params.id)
     if (!album || album.artistId !== artist.id) {
       return response.notFound({ errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }] })
     }
@@ -117,7 +116,23 @@ export default class AlbumsController {
       return response.notFound({ errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }] })
     }
 
-    return response.ok(album)
+    const loadedGenres = await GenreService.loadGenresByIds(album.genresId)
+    return response.ok({
+      data: {
+        id: album.id,
+        title: album.title,
+        artist: {
+          id: album.artist.id,
+          name: album.artist.name,
+        },
+        genres: loadedGenres,
+        releaseDate: album.releaseDate,
+        created_at: album.createdAt,
+        updated_at: album.updatedAt,
+        singles: album.singles,
+        metadata: album.metadata,
+      },
+    })
   }
 
   /**
@@ -132,13 +147,11 @@ export default class AlbumsController {
   public async delete({ auth, params, response }: HttpContextContract) {
     const artist = auth.user as Artist
     const album = await Album.find(params.id)
-
     if (!album || album.artistId !== artist.id) {
       return response.notFound({ errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }] })
     }
 
     await album.delete()
-
     return response.ok({ message: 'Album deleted successfully' })
   }
 }

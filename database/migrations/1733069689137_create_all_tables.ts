@@ -11,6 +11,7 @@ export default class CreateAllTables extends BaseSchema {
       table.string('password').notNullable()
       table.string('name').notNullable()
       table.text('biography').nullable()
+      // JSON columns
       table.json('social_links').nullable()
       table.json('location').nullable()
       table.string('verification_code').nullable()
@@ -18,7 +19,8 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('password_reset_expires_at', { useTz: true }).nullable()
       table.boolean('is_verified').notNullable().defaultTo(false)
       table.integer('popularity').notNullable().defaultTo(0)
-      table.json('genres_id').nullable() // Tableau de genres
+      // tableau d'IDs de genres
+      table.json('genres_id').nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })
@@ -29,7 +31,8 @@ export default class CreateAllTables extends BaseSchema {
       table.string('title').notNullable()
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
-      table.json('genres_id').nullable() // Tableau de genres
+      // tableau d'IDs de genres
+      table.json('genres_id').nullable()
       table.timestamp('release_date', { useTz: true }).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
@@ -45,7 +48,7 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })
 
-    // Insérer des données après la création de la table
+    // Insérer des données initiales dans la table genres
     this.defer(async (db) => {
       await db.table('genres').insert([
         { name: 'Pop', description: 'Popular music', slug: 'pop', created_at: new Date(), updated_at: new Date() },
@@ -75,8 +78,10 @@ export default class CreateAllTables extends BaseSchema {
         .references('id').inTable('albums').onDelete('SET NULL')
       table.integer('artist_id').unsigned().notNullable()
         .references('id').inTable('artists').onDelete('CASCADE')
+      // genre_id => pointeur vers la table genres
       table.integer('genre_id').unsigned().notNullable()
         .references('id').inTable('genres')
+        .onDelete('RESTRICT') // ou CASCADE si vous préférez
       table.timestamp('release_date', { useTz: true }).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
@@ -94,10 +99,8 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
 
-      // Contrainte pour s'assurer que soit single_id, soit album_id est présent, mais pas les deux
-      table.check(
-        '((single_id IS NOT NULL AND album_id IS NULL) OR (single_id IS NULL AND album_id IS NOT NULL))'
-      )
+      // single_id XOR album_id
+      table.check('((single_id IS NOT NULL AND album_id IS NULL) OR (single_id IS NULL AND album_id IS NOT NULL))')
     })
 
     // Table des droits d'auteur
@@ -113,7 +116,6 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
 
-      // Contrainte pour s'assurer que le pourcentage est entre 0 et 100
       table.check('percentage >= 0 AND percentage <= 100')
     })
 
@@ -171,7 +173,7 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('created_at', { useTz: true }).notNullable()
     })
 
-    // Table pivot pour les featurings
+    // Table pivot pour les featurings (single_featurings)
     this.schema.createTable('single_featurings', (table) => {
       table.integer('single_id').unsigned().notNullable()
         .references('id').inTable('singles').onDelete('CASCADE')

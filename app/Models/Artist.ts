@@ -13,7 +13,7 @@ import Single from './Single'
 import Playlist from './Playlist'
 import Notification from './Notification'
 import { Location, SearchHistoryEntry } from '../../resources/utils/Interfaces'
-import Genres from 'App/Models/Genres'
+import Genres from 'App/Models/Genre'
 
 export default class Artist extends BaseModel {
   @column({ isPrimary: true })

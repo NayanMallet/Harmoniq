@@ -13,7 +13,7 @@ import {
 import Artist from './Artist'
 import Single from './Single'
 import Metadata from './Metadata'
-import Genres from 'App/Models/Genres'
+import Genres from 'App/Models/Genre'
 
 export default class Album extends BaseModel {
   @column({ isPrimary: true })

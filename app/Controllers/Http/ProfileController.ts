@@ -1,6 +1,7 @@
 import Artist from 'App/Models/Artist'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import ProfileValidator from 'App/Validators/ProfileValidator'
+import GenreService from 'App/Services/GenreService'
 
 export default class ProfilesController {
   /**
@@ -88,12 +89,26 @@ export default class ProfilesController {
     const artist = await Artist.find(params.id)
 
     if (!artist) {
-      return response.status(404).json({
+      return response.notFound({
         errors: [{ message: 'Artist not found.', code: 'ARTIST_NOT_FOUND' }],
       })
     }
 
-    return response.ok({ data: artist })
+    const loadedGenres = await GenreService.loadGenresByIds(artist.genresId)
+    return response.ok({
+      data: {
+        popularity: artist.popularity,
+        id: artist.id,
+        email: artist.email,
+        name: artist.name,
+        biography: artist.biography,
+        socialLinks: artist.socialLinks,
+        location: artist.location,
+        genres: loadedGenres,
+        created_at: artist.createdAt,
+        updated_at: artist.updatedAt,
+      },
+    })
   }
 
 

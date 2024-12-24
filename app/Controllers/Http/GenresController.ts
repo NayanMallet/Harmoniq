@@ -2,7 +2,7 @@
 
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import GenresValidator from 'App/Validators/GenresValidator'
-import Genres from 'App/Models/Genres'
+import Genres from 'App/Models/Genre'
 
 export default class GenresController {
 

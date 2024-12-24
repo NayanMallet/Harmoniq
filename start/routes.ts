@@ -66,6 +66,7 @@ Route.group(() => {
   Route.post('/', 'SingleController.create').middleware('auth')
   Route.put('/:id', 'SingleController.update').middleware('auth')
   Route.get('/:id', 'SingleController.show')
+  Route.get('/', 'SingleController.index')
   Route.delete('/:id', 'SingleController.delete').middleware('auth')
 })
   .prefix('/api/singles')

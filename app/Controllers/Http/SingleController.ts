@@ -203,7 +203,6 @@ export default class SinglesController {
     }
   }
 
-  //TODO: Modif how are returned the singles
   /**
    * @show
    * @operationId getSingle
@@ -245,7 +244,116 @@ export default class SinglesController {
     })
   }
 
+
+
   /**
+   * @index
+   * @operationId listSingles
+   * @description Lists all singles with optional filters (genre, title, artistId) and pagination.
+   * Also sorts by the specified field (title, releaseDate, popularity) in asc/desc order.
+   * Returns partial warnings if unknown query params are provided.
+   *
+   * @paramQuery genreId - Filter by genre ID - @type(number)
+   * @paramQuery title - Filter by partial or complete single title (case-insensitive) - @type(string)
+   * @paramQuery artistId - Filter by artist ID - @type(number)
+   * @paramQuery sortBy - "title", "releaseDate", or "popularity" - @type(string)
+   * @paramQuery sortDirection - "asc" or "desc" - @type(string)
+   * @paramQuery page - Page number (1..10000) - @type(number)
+   * @paramQuery limit - Limit number (1..100) - @type(number)
+   *
+   * @responseBody 200 - {"warnings":[...],"meta":{},"data":[...]}
+   * @responseBody 400 - {"errors":[{"message":"Validation error"}]}
+   */
+  public async index({ request, response }: HttpContextContract) {
+    try {
+      const queryParams = request.qs()
+
+      const recognizedKeys = SingleValidator.recognizedKeys // [ 'genreId', 'title', 'artistId', ... ]
+      const allKeys = Object.keys(queryParams)
+      const unknownKeys = allKeys.filter((k) => !recognizedKeys.includes(k))
+
+      // Warnings pour chaque clé inconnue
+      const warnings = unknownKeys.map((field) => ({
+        message: `Query param '${field}' is not recognized and was ignored.`,
+        code: 'UNRECOGNIZED_PARAM',
+        field,
+      }))
+
+      // 4. Extraire *uniquement* les clés reconnues pour la validation
+      const validPayload: Record<string, any> = {}
+      for (const key of recognizedKeys) {
+        if (queryParams[key] !== undefined) {
+          validPayload[key] = queryParams[key]
+        }
+      }
+
+      const payload = await request.validate({
+        schema: SingleValidator.filterSchema,
+        messages: SingleValidator.messages,
+        data: validPayload,
+      })
+
+      const {
+        genreId,
+        title,
+        artistId,
+        sortBy,
+        sortDirection,
+        page = 1,
+        limit = 10,
+      } = payload
+
+      // 6. Construire la requête
+      const query = Single.query()
+
+      // Filtrer par genre
+      if (genreId) {
+        query.where('genre_id', genreId)
+      }
+
+      // Filtrer par titre (case-insensitive)
+      if (title) {
+        const lowerTitle = title.toLowerCase()
+        query.whereRaw('LOWER(title) LIKE ?', [`%${lowerTitle}%`])
+      }
+
+      // Filtrer par artiste
+      if (artistId) {
+        query.where('artist_id', artistId)
+      }
+
+      // Tri
+      if (sortBy) {
+        query.orderBy(sortBy, sortDirection || 'asc')
+      } else {
+        query.orderBy('created_at', 'desc') // tri par défaut
+      }
+
+      // Pagination
+      const singles = await query.paginate(page, limit)
+
+      // 7. Retourner la réponse
+      // S'il y a des warnings => on les inclut dans la réponse
+      return response.ok({
+        warnings,
+        meta: singles.getMeta(),
+        data: singles.all(),
+      })
+    } catch (error) {
+      // Erreur de validation
+      if (error.messages?.errors) {
+        return response.badRequest({ errors: error.messages.errors })
+      }
+      // Erreur interne
+      return response.internalServerError({
+        errors: [{ message: 'Failed to fetch singles.', code: 'INTERNAL_ERROR' }],
+      })
+    }
+  }
+
+
+
+/**
    * @delete
    * @operationId deleteSingle
    * @description Deletes a single by ID.

@@ -52,6 +52,35 @@ export default class SingleValidator {
     ),
   })
 
+  public static filterSchema = schema.create({
+    genreId: schema.number.optional([
+      rules.exists({ table: 'genres', column: 'id' }),
+    ]),
+    title: schema.string.optional({}, [rules.maxLength(255)]),
+    artistId: schema.number.optional([
+      rules.exists({ table: 'artists', column: 'id' }),
+    ]),
+    sortBy: schema.enum.optional(['title', 'releaseDate', 'popularity'] as const),
+    sortDirection: schema.enum.optional(['asc', 'desc'] as const),
+    page: schema.number.optional([rules.range(1, 10000)]),
+    limit: schema.number.optional([rules.range(1, 100)]),
+  })
+
+  /**
+   * Les clés reconnues par le validateur.
+   * On s'en servira pour détecter les params inconnus.
+   */
+  public static recognizedKeys = [
+    'genreId',
+    'title',
+    'artistId',
+    'sortBy',
+    'sortDirection',
+    'page',
+    'limit',
+  ]
+
+
   public static messages: CustomMessages = {
     'title.maxLength': 'Title cannot exceed 255 characters.',
     'genreId.number': 'genreId must be a valid number.',
@@ -61,5 +90,9 @@ export default class SingleValidator {
     'percentage.range': 'Percentage must be between 0 and 100.',
     'artistId.exists': 'Specified artist does not exist.',
     'albumId.exists': 'Specified album does not exist.',
+    'sortBy.enum': 'sortBy must be one of title, releaseDate, popularity.',
+    'sortDirection.enum': 'sortDirection must be either asc or desc.',
+    'page.range': 'Page must be between 1 and 10000.',
+    'limit.range': 'Limit must be between 1 and 100.',
   }
 }

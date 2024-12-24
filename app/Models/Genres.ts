@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon'
 import { BaseModel, beforeSave, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
-import slugify from 'slugify'
 import Single from 'App/Models/Single'
 import Album from 'App/Models/Album'
 import Artist from 'App/Models/Artist'
@@ -27,7 +26,7 @@ export default class Genres extends BaseModel {
 
   @beforeSave()
   public static async generateSlug(genre: Genres) {
-    genre.slug = slugify(genre.name)
+    genre.slug = genre.name.toLowerCase().replace(/ /g, '-')
   }
 
   @belongsTo(() => Single)

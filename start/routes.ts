@@ -84,7 +84,6 @@ Route.group(() => {
 // Genres routes
 Route.group(() => {
   Route.post('/', 'GenresController.create').middleware('auth')
-  Route.post('/init', 'GenresController.init').middleware('auth')
   Route.get('/', 'GenresController.index')
   Route.delete('/:id', 'GenresController.delete').middleware('auth')
 })

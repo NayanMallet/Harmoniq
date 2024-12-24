@@ -45,6 +45,28 @@ export default class CreateAllTables extends BaseSchema {
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })
 
+    // Insérer des données après la création de la table
+    this.defer(async (db) => {
+      await db.table('genres').insert([
+        { name: 'Pop', description: 'Popular music', slug: 'pop', created_at: new Date(), updated_at: new Date() },
+        { name: 'Rock', description: 'Rock music', slug: 'rock', created_at: new Date(), updated_at: new Date() },
+        { name: 'HipHop', description: 'Hip Hop music', slug: 'hiphop', created_at: new Date(), updated_at: new Date() },
+        { name: 'Jazz', description: 'Jazz music', slug: 'jazz', created_at: new Date(), updated_at: new Date() },
+        { name: 'Classical', description: 'Classical music', slug: 'classical', created_at: new Date(), updated_at: new Date() },
+        { name: 'Electronic', description: 'Electronic music', slug: 'electronic', created_at: new Date(), updated_at: new Date() },
+        { name: 'Reggae', description: 'Reggae music', slug: 'reggae', created_at: new Date(), updated_at: new Date() },
+        { name: 'Country', description: 'Country music', slug: 'country', created_at: new Date(), updated_at: new Date() },
+        { name: 'Blues', description: 'Blues music', slug: 'blues', created_at: new Date(), updated_at: new Date() },
+        { name: 'Metal', description: 'Metal music', slug: 'metal', created_at: new Date(), updated_at: new Date() },
+        { name: 'Soul', description: 'Soul music', slug: 'soul', created_at: new Date(), updated_at: new Date() },
+        { name: 'Funk', description: 'Funk music', slug: 'funk', created_at: new Date(), updated_at: new Date() },
+        { name: 'Disco', description: 'Disco music', slug: 'disco', created_at: new Date(), updated_at: new Date() },
+        { name: 'Folk', description: 'Folk music', slug: 'folk', created_at: new Date(), updated_at: new Date() },
+        { name: 'Latin', description: 'Latin music', slug: 'latin', created_at: new Date(), updated_at: new Date() },
+        { name: 'Other', description: 'Other music', slug: 'other', created_at: new Date(), updated_at: new Date() },
+      ])
+    })
+
     // Table des singles
     this.schema.createTable('singles', (table) => {
       table.increments('id')

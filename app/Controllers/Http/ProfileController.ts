@@ -45,12 +45,10 @@ export default class ProfilesController {
       if (payload.biography) updateData.biography = payload.biography
       if (payload.socialLinks) {
         updateData.socialLinks = JSON.stringify(payload.socialLinks)
-        // updateData.socialLinks = payload.socialLinks
 
       }
       if (payload.location) {
         updateData.location = JSON.stringify(payload.location)
-        // updateData.location = payload.location
       }
 
       artist.merge(updateData)
@@ -77,13 +75,22 @@ export default class ProfilesController {
     }
   }
 
+  // const single = await Single.query()
+  //   .where('id', params.id)
+  //   .preload('artist')
+  //   // .preload('genres')
+  //   .preload('metadata', (metadataQuery) => {
+  //     metadataQuery.preload('copyrights')
+  //   })
+  //   .first()
+
   /**
    * @show
-   * @operationId getArtistProfile
-   * @description Retrieves the profile of an artist by ID.
+   * @operationId showArtistProfile
+   * @description Fetches the profile of an artist by ID.
    * @parameters
-   *   - (path) id {number} - The ID of the artist to retrieve.
-   * @responseBody 200 - <Artist> - Artist profile retrieved successfully.
+   *   - (path) id {number} - The ID of the artist to fetch.
+   * @responseBody 200 - <Artist> - Artist profile fetched successfully.
    * @responseBody 404 - {"errors": [{"message":"Artist not found."}]}
    */
   public async show({ params, response }: HttpContextContract) {
@@ -95,7 +102,7 @@ export default class ProfilesController {
       })
     }
 
-    return response.ok(artist)
+    return response.ok({ data: artist })
   }
 
 

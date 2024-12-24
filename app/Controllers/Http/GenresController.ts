@@ -3,7 +3,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import GenresValidator from 'App/Validators/GenresValidator'
 import Genres from 'App/Models/Genres'
-import { GenreObjects } from '../../../resources/utils/GenreObjects'
 
 export default class GenresController {
 
@@ -48,30 +47,6 @@ export default class GenresController {
     }
   }
 
-  /**
-   * @init
-   * @operationId initGenres
-   * @description Initializes genres
-   * @responseBody 201 - {"message":"Genres initialized successfully"}
-   * @responseBody 500 - {"errors":[{"message":"Initialize genres failed.","code":"INTERNAL_ERROR"}]}
-    */
-  public async init({ response }: HttpContextContract) {
-    try {
-      for (const genre of GenreObjects) {
-        await Genres.create(genre)
-      }
-      return response.created({ message: 'Genres initialized successfully' })
-    } catch (error) {
-      console.error(error)
-      return response.internalServerError({
-        errors: [{
-          message: 'Initialize genres failed.',
-          code: 'INTERNAL_ERROR'
-        }]
-      })
-    }
-  }
-
 
   //TODO: Optimize index/delete methods + add index by ID/slug
   /**
@@ -104,9 +79,4 @@ export default class GenresController {
     await genre.delete()
     return response.ok({ message: 'Genres deleted successfully' })
   }
-
-
-
-
-
 }

@@ -52,7 +52,7 @@ export default class Artist extends BaseModel {
   @column.dateTime({ serializeAs: null })
   public passwordResetExpiresAt?: DateTime | null
 
-  @column()
+  @column({ serializeAs: null })
   public isVerified: boolean = false
 
   @column()

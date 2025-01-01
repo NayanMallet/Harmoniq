@@ -26,27 +26,31 @@ export default class ProfileValidator {
     }),
   })
 
-  //TODO: Remettre tris par genre
   /**
    * Validation pour la recherche d’artistes (index)
    */
   public static searchSchema = schema.create({
-    // genre: schema.enum.optional(Object.values(Genres)),
+    genreId: schema.number.optional([
+      // On vérifie que cet ID existe dans la table "genres" si on veut être strict
+      rules.exists({ table: 'genres', column: 'id' }),
+    ]),
+
     country: schema.string.optional({}, [
       rules.minLength(2),
       rules.maxLength(255),
-      rules.regex(/^[A-Za-z]+$/),
     ]),
     city: schema.string.optional({}, [
       rules.maxLength(255),
-      rules.regex(/^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/),
     ]),
     name: schema.string.optional({}, [rules.maxLength(255)]),
+
     sort: schema.enum.optional(['popularity', 'name'] as const),
+    // Optionnel : si vous voulez gérer la direction du tri dans le validateur
+    // sortDirection: schema.enum.optional(['asc', 'desc'] as const),
+
     page: schema.number.optional([rules.range(1, 10000)]),
     limit: schema.number.optional([rules.range(1, 100)]),
   })
-
 
   /**
    * Validation pour la comparaison d’artistes
@@ -57,8 +61,23 @@ export default class ProfileValidator {
     ]),
   })
 
+  /**
+   * Les clés reconnues par le validateur.
+   * On s'en servira pour détecter les params inconnus.
+   */
+  public static recognizedKeys = [
+    'genreId',
+    'title',
+    'artistId',
+    'sortBy',
+    'sortDirection',
+    'page',
+    'limit',
+  ]
+
   public static messages: CustomMessages = {
-    'genre.maxLength': 'Genres query is too long.',
+    'genreId.number': 'genreId must be a valid number.',
+    'genreId.exists': 'Specified genre does not exist.',
     'country.maxLength': 'Country cannot exceed 255 characters.',
     'country.regex': 'Country must be letters only.',
     'city.maxLength': 'City name cannot exceed 255 characters.',

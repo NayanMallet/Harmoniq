@@ -8,6 +8,92 @@ import AlbumValidator from 'App/Validators/AlbumValidator'
 import GenreService from 'App/Services/GenreService'
 
 export default class AlbumsController {
+
+  /**
+   * @index
+   * @operationId listAlbums
+   * @description Lists and filters albums with pagination.
+   * @paramQuery genreId - Filter by a genre ID that is in album.genresId - @type(number)
+   * @paramQuery title - Filter by partial or complete album title (case-insensitive) - @type(string)
+   * @paramQuery artistId - Filter by artist ID - @type(number)
+   * @paramQuery sortBy - "title" or "releaseDate" - @type(string)
+   * @paramQuery sortDirection - "asc" or "desc" - @type(string)
+   * @paramQuery page - Page number (1..10000) - @type(number)
+   * @paramQuery limit - Page size (1..100) - @type(number)
+   * @responseBody 200 - <Album[]>.paginated()
+   * @responseBody 400 - {"errors":[{"message":"Validation error"}]}
+   * @responseBody 500 - {"errors":[{"message":"Internal error"}]}
+   */
+  public async index({ request, response }: HttpContextContract) {
+    try {
+      // 1. Valider les query params
+      const payload = await request.validate({
+        schema: AlbumValidator.filterSchema,
+        messages: AlbumValidator.messages,
+      })
+
+      const {
+        genreId,
+        title,
+        artistId,
+        sortBy,
+        sortDirection,
+        page = 1,
+        limit = 10,
+      } = payload
+
+      // 2. Construire la requête
+      const query = Album.query()
+
+      // Filtrer par genre => JSON_CONTAINS(albums.genres_id, [genreId])
+      if (genreId) {
+        query.whereRaw(
+          'JSON_CONTAINS(genres_id, CAST(? as JSON))',
+          [genreId]
+        )
+      }
+
+      // Filtrer par title (case-insensitive)
+      if (title) {
+        const lowerTitle = title.toLowerCase()
+        query.whereRaw('LOWER(title) LIKE ?', [`%${lowerTitle}%`])
+      }
+
+      // Filtrer par artiste
+      if (artistId) {
+        query.where('artist_id', artistId)
+      }
+
+      // Tri
+      if (sortBy === 'title') {
+        query.orderByRaw(`LOWER(title) ${sortDirection || 'asc'}`)
+      } else if (sortBy === 'releaseDate') {
+        query.orderBy('release_date', sortDirection || 'asc')
+      } else {
+        // Tri par défaut => "created_at desc"
+        query.orderBy('created_at', 'desc')
+      }
+
+      // 3. Pagination
+      const albums = await query.paginate(page, limit)
+
+      // 4. Retourner la réponse
+      return response.ok({
+        meta: albums.getMeta(),
+        data: albums.all(),
+      })
+    } catch (error) {
+      // Erreur de validation => 400
+      if (error.messages?.errors) {
+        return response.badRequest({ errors: error.messages.errors })
+      }
+      // Erreur interne => 500
+      return response.internalServerError({
+        errors: [{ message: 'Failed to fetch albums.', code: 'INTERNAL_ERROR' }],
+      })
+    }
+  }
+
   /**
    * @create
    * @operationId createAlbum

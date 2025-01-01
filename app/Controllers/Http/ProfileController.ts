@@ -111,114 +111,106 @@ export default class ProfilesController {
     })
   }
 
+  /**
+   * @index
+   * @operationId listArtists
+   * @description Lists and filters artists by genre, country, city, name. Supports pagination and sorting.
+   * @paramQuery genreId - Filter by genre ID (must be in Artist.genres_id) - @type(number)
+   * @paramQuery country - Filter by country (case-insensitive) - @type(string)
+   * @paramQuery city - Filter by city (case-insensitive) - @type(string)
+   * @paramQuery name - Filter by partial or complete artist name (case-insensitive) - @type(string)
+   * @paramQuery sort - "popularity" or "name" - @type(string)
+   * @paramQuery page - Page number (1..10000) - @type(number)
+   * @paramQuery limit - Page size (1..100) - @type(number)
+   * @responseBody 200 - <Artist[]>.paginated() // Paginated list of artists
+   * @responseBody 400 - {"errors":[{"message":"Validation error"}]}
+   * @responseBody 500 - {"errors":[{"message":"Internal error"}]}
+   */
+  public async index({ request, response }: HttpContextContract) {
+    try {
+      // 1. Valider la query string
+      const payload = await request.validate({
+        schema: ProfileValidator.searchSchema,
+        messages: ProfileValidator.messages,
+      })
 
-  // public async index({ request, response, auth }: HttpContextContract) {
-  //   try {
-  //     const payload = await request.validate({
-  //       schema: ProfileValidator.searchSchema,
-  //       messages: ProfileValidator.messages,
-  //     })
-  //
-  //     const { genre, country, city, name, sort, page = 1, limit = 10 } = payload
-  //
-  //     const query = Artist.query()
-  //
-  //     // Exécuter la requête avec pagination
-  //     const artists = await query.paginate(page, limit)
-  //
-  //     if (auth.user) {
-  //       auth.user.searchHistory = auth.user.searchHistory || []
-  //       auth.user.searchHistory.push(<SearchHistoryEntry>buildSearchHistoryEntry(request))
-  //       await auth.user.save()
-  //     }
-  //
-  //     return response.ok({
-  //       meta: artists.getMeta(),
-  //       data: artists.all(),
-  //       search_history: auth.user?.searchHistory?.slice(-10)
-  //     })
-  //   } catch (error) {
-  //     if (error.messages?.errors) {
-  //       return response.badRequest({ errors: error.messages.errors })
-  //     }
-  //     return response.internalServerError({ errors: [{ message: 'Failed to fetch artists.' }] })
-  //   }
-  // }
+      const {
+        genreId,
+        country,
+        city,
+        name,
+        sort,
+        page = 1,
+        limit = 10,
+      } = payload
 
+      // Optionnel : si vous gérez la direction du tri
+      // sinon, vous pouvez ignorer
+      const sortDirection = request.input('sortDirection', 'asc').toLowerCase()
+      const validSortDirection = ['asc', 'desc'].includes(sortDirection)
+        ? sortDirection
+        : 'asc'
 
+      // 2. Construire la requête Lucid
+      const query = Artist.query()
 
-  // public async index({ request, response, auth }: HttpContextContract) {
-  //   try {
-  //     const payload = await request.validate({
-  //       schema: ProfileValidator.searchSchema,
-  //       messages: ProfileValidator.messages,
-  //     })
-  //
-  //     const { genre, country, city, name, sort, page = 1, limit = 10 } = payload
-  //
-  //     const query = Artist.query()
-  //
-  //     // Filtrage par genre (si l'artiste a ce genre dans son tableau genres)
-  //     if (genre) {
-  //       // Vérifier que c'est bien un tableau JSON
-  //       query.whereRaw('JSON_CONTAINS(genres, ?)', [JSON.stringify(genre)])
-  //     }
-  //
-  //     // Filtre par localisation
-  //     if (country) {
-  //       query.whereRaw('JSON_EXTRACT(location, "$.country") = ?', [country])
-  //     }
-  //     if (city) {
-  //       query.whereRaw('LOWER(JSON_EXTRACT(location, "$.city")) LIKE LOWER(?)', [`%${city}%`])
-  //     }
-  //
-  //     // Filtre par nom
-  //     if (name) {
-  //       query.where('name', 'like', `%${name}%`)
-  //     }
-  //
-  //     // Tri
-  //     if (sort === 'popularity') {
-  //       query.orderBy('popularity', 'desc')
-  //     } else if (sort === 'name') {
-  //       query.orderBy('name', 'asc')
-  //     }
-  //
-  //     // Exécuter la requête avec pagination
-  //     const artists = await query.paginate(page, limit)
-  //
-  //     // Gestion de l'historique de recherche si l'utilisateur est connecté
-  //     const userArtist = auth.user as Artist | undefined
-  //     if (userArtist) {
-  //       userArtist.searchHistory = userArtist.searchHistory || []
-  //       userArtist.searchHistory.push({
-  //         timestamp: new Date().toISOString(),
-  //         query: request.url() + (Object.keys(request.qs()).length > 0 ? '?' + new URLSearchParams(request.qs()).toString() : '')
-  //       })
-  //       await userArtist.save()
-  //     }
-  //
-  //     // Préparer la liste des 10 dernières recherches si l'utilisateur est connecté
-  //     let lastTenSearches: {timestamp:string, query:string}[] = []
-  //     if (userArtist && userArtist.searchHistory) {
-  //       lastTenSearches = userArtist.searchHistory.slice(-10)
-  //     }
-  //
-  //     // Retourner les données avec la pagination et l'historique de recherche
-  //     return response.ok({
-  //       meta: artists.getMeta(),
-  //       data: artists.all(),
-  //       search_history: lastTenSearches
-  //     })
-  //   } catch (error) {
-  //     if (error.messages?.errors) {
-  //       return response.badRequest({ errors: error.messages.errors })
-  //     }
-  //     return response.internalServerError({ errors: [{ message: 'Failed to fetch artists.' }] })
-  //   }
-  // }
+      // Filtrer par genreId => JSON_CONTAINS(artist.genres_id, [genreId])
+      if (genreId) {
+        // On peut cast en JSON
+        query.whereRaw(
+          'JSON_CONTAINS(genres_id, CAST(? as JSON))',
+          [genreId]
+        )
+      }
 
+      // Filtrer par country (case-insensitive)
+      if (country) {
+        const lowerCountry = country.toLowerCase()
+        query.whereRaw('LOWER(JSON_EXTRACT(location, "$.country")) LIKE ?', [`%${lowerCountry}%`])
+      }
 
+      // Filtrer par city (case-insensitive)
+      if (city) {
+        const lowerCity = city.toLowerCase()
+        query.whereRaw('LOWER(JSON_EXTRACT(location, "$.city")) LIKE ?', [`%${lowerCity}%`])
+      }
+
+      // Filtrer par name (case-insensitive)
+      if (name) {
+        const lowerName = name.toLowerCase()
+        query.whereRaw('LOWER(name) LIKE ?', [`%${lowerName}%`])
+      }
+
+      // Tri
+      if (sort === 'popularity') {
+        query.orderBy('popularity', validSortDirection as 'asc' | 'desc')
+      } else if (sort === 'name') {
+        // insensible à la casse
+        query.orderByRaw(`LOWER(name) ${validSortDirection}`)
+      } else {
+        // Par défaut, on tri par 'created_at' desc, par exemple
+        query.orderBy('created_at', 'desc')
+      }
+
+      // Pagination
+      const artists = await query.paginate(page, limit)
+
+      return response.ok({
+        meta: artists.getMeta(),
+        data: artists.all(),
+      })
+    } catch (error) {
+      // Erreur de validation => 400
+      if (error.messages?.errors) {
+        return response.badRequest({ errors: error.messages.errors })
+      }
+
+      // Erreur interne => 500
+      return response.internalServerError({
+        errors: [{ message: 'Failed to fetch artists.', code: 'INTERNAL_ERROR' }],
+      })
+    }
+  }
 
   public async compare({ request, response }: HttpContextContract) {
     try {

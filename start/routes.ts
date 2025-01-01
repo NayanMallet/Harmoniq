@@ -77,6 +77,7 @@ Route.group(() => {
   Route.post('/', 'AlbumController.create').middleware('auth')
   Route.put('/:id', 'AlbumController.update').middleware('auth')
   Route.get('/:id', 'AlbumController.show')
+  Route.get('/', 'AlbumController.index')
   Route.delete('/:id', 'AlbumController.delete').middleware('auth')
 })
   .prefix('/api/albums')

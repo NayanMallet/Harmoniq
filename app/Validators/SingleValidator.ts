@@ -52,6 +52,9 @@ export default class SingleValidator {
     ),
   })
 
+  /**
+   * Filtre / pagination / tri
+   */
   public static filterSchema = schema.create({
     genreId: schema.number.optional([
       rules.exists({ table: 'genres', column: 'id' }),
@@ -65,21 +68,6 @@ export default class SingleValidator {
     page: schema.number.optional([rules.range(1, 10000)]),
     limit: schema.number.optional([rules.range(1, 100)]),
   })
-
-  /**
-   * Les clés reconnues par le validateur.
-   * On s'en servira pour détecter les params inconnus.
-   */
-  public static recognizedKeys = [
-    'genreId',
-    'title',
-    'artistId',
-    'sortBy',
-    'sortDirection',
-    'page',
-    'limit',
-  ]
-
 
   public static messages: CustomMessages = {
     'title.maxLength': 'Title cannot exceed 255 characters.',

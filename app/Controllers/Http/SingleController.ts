@@ -93,40 +93,78 @@ export default class SinglesController {
   /**
    * @create
    * @operationId createSingle
-   * @description Creates a new single with metadata.
+   * @description Creates a new single with metadata, pivot featurings, etc.
    * @requestBody <SingleValidator.createSchema>
-   * @responseBody 201 - { "message":"Single created successfully","data":<Single> }
-   * @responseBody 400 - { "errors":[{"message":"Validation error"}]}
-   * @responseBody 500 - { "errors":[{"message":"Internal error"}]}
+   * @responseBody 201 - {"message":"Single created successfully","data":<Single>}
+   * @responseBody 400 - {"errors":[{"message":"Validation error or invalid data."}]}
+   * @responseBody 500 - {"errors":[{"message":"Create single failed."}]}
    */
   public async create({ auth, request, response }: HttpContextContract) {
-    const artist = auth.user as Artist
     try {
+      // 1. Validation
       const payload = await request.validate({
         schema: SingleValidator.createSchema,
         messages: SingleValidator.messages,
       })
 
+      // 2. Récupération de l'artiste principal
+      const mainArtist = auth.user as Artist
+
+      // 3. Vérifier la logique des featurings
+      //    Récupérer tous les artistId mentionnés dans les copyrights
+      //    qui sont différents de l'artiste principal.
+      const allFeatIds = payload.copyrights
+        .filter((c) => c.artistId && c.artistId !== mainArtist.id)
+        .map((c) => c.artistId!)
+
+      // Charger les artistes correspondants en base (pour vérifier qu'ils existent)
+      const featuringArtists = await Artist.query().whereIn('id', allFeatIds)
+      if (featuringArtists.length !== allFeatIds.length) {
+        return response.badRequest({
+          errors: [
+            { message: 'One or more featuring artists not found.', code: 'ARTIST_NOT_FOUND' },
+          ],
+        })
+      }
+      // Vérifier qu'on n'a pas la situation "un artiste se feature lui-même"
+      // a priori déjà filtré par (c.artistId !== mainArtist.id) ci-dessus
+
+      // 4. Construire le titre "Original Title (feat. A, B, C)" S'IL Y A DES FEATS
+      let finalTitle = payload.title
+      if (featuringArtists.length > 0) {
+        const featNames = featuringArtists.map((a) => a.name).join(', ')
+        finalTitle = `${payload.title} (feat. ${featNames})`
+      }
+
+      // 5. Créer le single
       const single = await Single.create({
-        title: payload.title,
+        title: finalTitle,
         genreId: payload.genreId,
         releaseDate: payload.releaseDate,
-        artistId: artist.id,
+        artistId: mainArtist.id,
         albumId: payload.albumId,
       })
 
-      // Metadata
+      // 6. Pivot featurings (single_featurings)
+      //    Attacher tous les artisteIds trouvés
+      if (featuringArtists.length > 0) {
+        // On appelle "attach" pour créer les lignes dans single_featurings
+        await single.related('featurings').attach(allFeatIds)
+      }
+
+      // 7. Créer la metadata du single
       const metadata = await Metadata.create({
         singleId: single.id,
         coverUrl: payload.metadata.coverUrl,
         lyrics: payload.metadata.lyrics,
       })
 
-      // Copyright
+      // 8. Gérer les copyrights => Vérifier la somme = 100, etc.
       let totalPercentage = 0
       for (const c of payload.copyrights) {
         totalPercentage += c.percentage
 
+        // Condition : soit artistId, soit ownerName
         if (!c.artistId && !c.ownerName) {
           return response.badRequest({
             errors: [
@@ -142,6 +180,7 @@ export default class SinglesController {
           })
         }
 
+        // Création
         await Copyright.create({
           metadataId: metadata.id,
           artistId: c.artistId,
@@ -150,38 +189,33 @@ export default class SinglesController {
           percentage: c.percentage,
         })
       }
+      // Vérifier la somme = 100
       if (totalPercentage !== 100) {
         return response.badRequest({
-          errors: [{ message: 'Total percentage must be 100%', code: 'COPYRIGHT_PERCENTAGE_ERROR' }],
+          errors: [
+            { message: 'Total percentage must be 100%', code: 'COPYRIGHT_PERCENTAGE_ERROR' },
+          ],
         })
       }
 
-      // Stats
+      // 9. Stats initiales
       await Stat.create({
         singleId: single.id,
         listensCount: 0,
         revenue: 0,
       })
 
-      // Update artiste & album
-      await this.updateArtistGenres(artist)
+      // 10. Mettre à jour genres (artiste / album)
+      await this.updateArtistGenres(mainArtist)
       if (single.albumId) {
         await this.updateAlbumGenres(single.albumId)
       }
 
-      // Featurings
-      // const featuringArtists = payload.copyrights
-      //   .filter((c) => c.artistId && c.artistId !== artist.id)
-      //   .map((c) => c.artistId!)
-      //
-      // if (featuringArtists.length > 0) {
-      //   await single.related('featurings').attach(featuringArtists)
-      //   const artists = await Artist.query().whereIn('id', featuringArtists)
-      //   const featuringNames = artists.map((a) => a.name).join(', ')
-      //   single.title += ` (feat. ${featuringNames})`
-      // }
-
-      return response.created({ message: 'Single created successfully', data: single })
+      // 11. Retour final
+      return response.created({
+        message: 'Single created successfully',
+        data: single,
+      })
     } catch (error) {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
@@ -195,17 +229,17 @@ export default class SinglesController {
   /**
    * @update
    * @operationId updateSingle
-   * @description Updates an existing single, ignoring any attempt to update non-modifiable fields.
-   * @paramPath id - The ID of the single - @type(number) @required
+   * @description Updates an existing single, re-defining any featuring in the title, pivot, etc.
    * @requestBody <SingleValidator.updateSchema>
-   * @responseBody 200 - {"message":"Single updated successfully with partial warnings","warnings":[...],"data":<Single>}
-   * @responseBody 400 - {"errors":[{"message":"Validation error or invalid data."}]}
-   * @responseBody 404 - {"errors":[{"message":"Single not found."}]}
+   * @responseBody 200 - {"message":"Single updated successfully","data":<Single>}
+   * @responseBody 400 - {"errors":[{"message":"Validation error"}]}
+   * @responseBody 404 - {"errors":[{"message":"Single not found"}]}
+   * @responseBody 500 - {"errors":[{"message":"Update single failed"}]}
    */
   public async update({ auth, request, response, params }: HttpContextContract) {
+    // 1. Retrouver le single
     const artist = auth.user as Artist
     const single = await Single.find(params.id)
-
     if (!single || single.artistId !== artist.id) {
       return response.notFound({
         errors: [{ message: 'Single not found', code: 'SINGLE_NOT_FOUND' }],
@@ -213,20 +247,60 @@ export default class SinglesController {
     }
 
     try {
+      // 2. Validation
       const payload = await request.validate({
         schema: SingleValidator.updateSchema,
         messages: SingleValidator.messages,
       })
 
+      // 3. Gérer les featurings
+      //    On refait la même logique : Récupérer tout featuring dans payload
+      //    + Vérifier existence, etc.
+      let featuringNames: string[] = []
+      let featuringIds: number[] = []
+
+      if (payload.copyrights) {
+        const allFeatIds = payload.copyrights
+          .filter((c) => c.artistId && c.artistId !== artist.id)
+          .map((c) => c.artistId!)
+
+        // Charger les artistes correspondants
+        if (allFeatIds.length > 0) {
+          const featuringArtists = await Artist.query().whereIn('id', allFeatIds)
+          if (featuringArtists.length !== allFeatIds.length) {
+            return response.badRequest({
+              errors: [{ message: 'One or more featuring artists not found.', code: 'ARTIST_NOT_FOUND' }],
+            })
+          }
+          featuringNames = featuringArtists.map((a) => a.name)
+          featuringIds = allFeatIds
+        }
+      }
+
+      // 4. Construire le nouveau titre
+      //    1) Soit on prend payload.title
+      //    2) Si featuring, on ajoute (feat. X, Y)
+      let finalTitle = payload.title ?? single.title
+      if (featuringIds.length > 0) {
+        const namesStr = featuringNames.join(', ')
+        finalTitle = `${payload.title ?? single.title} (feat. ${namesStr})`
+      }
+
+      // 5. Mettre à jour le single
       single.merge({
-        title: payload.title,
+        // S'il y a un nouveau titre, on le prend => finalTitle
+        title: finalTitle,
         genreId: payload.genreId ?? single.genreId,
-        releaseDate: payload.releaseDate,
-        albumId: payload.albumId,
+        releaseDate: payload.releaseDate ?? single.releaseDate,
+        albumId: payload.albumId ?? single.albumId,
       })
       await single.save()
 
-      // Metadata
+      // 6. Mettre à jour la pivot single_featurings :
+      //    On "sync" pour remplacer les anciens featurings par les nouveaux.
+      await single.related('featurings').sync(featuringIds)
+
+      // 7. Mettre à jour la metadata
       if (payload.metadata) {
         let metadata = await single.related('metadata').query().first()
         if (!metadata) {
@@ -240,10 +314,11 @@ export default class SinglesController {
         await metadata.save()
       }
 
-      // Copyright
+      // 8. (Ré)créer les copyrights
       if (payload.copyrights) {
         const metadata = await single.related('metadata').query().first()
         if (metadata) {
+          // Effacer les anciens
           await metadata.related('copyrights').query().delete()
 
           let totalPercentage = 0
@@ -283,12 +358,17 @@ export default class SinglesController {
         }
       }
 
+      // 9. Mettre à jour les genres de l'artiste / album
       await this.updateArtistGenres(artist)
       if (single.albumId) {
         await this.updateAlbumGenres(single.albumId)
       }
 
-      return response.ok({ message: 'Single updated successfully', data: single })
+      // 10. Tout s'est bien passé
+      return response.ok({
+        message: 'Single updated successfully',
+        data: single,
+      })
     } catch (error) {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })

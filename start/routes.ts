@@ -91,3 +91,10 @@ Route.group(() => {
 })
   .prefix('/api/genres')
   .namespace('App/Controllers/Http')
+
+Route.group(() => {
+  Route.put('/:id', 'StatsController.update') // PUT /api/stats/:id
+  Route.get('/artist/:artistId', 'StatsController.artistStats') // GET /api/stats/artist/:artistId
+})
+  .prefix('/api/stats')
+  .namespace('App/Controllers/Http')

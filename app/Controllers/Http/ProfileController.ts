@@ -82,7 +82,12 @@ export default class ProfilesController {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Profile update failed due to an internal error.', code: 'INTERNAL_ERROR' }] })
+      return response.internalServerError({
+        errors: [{
+          message: 'Profile update failed due to an internal error.',
+          code: 'INTERNAL_ERROR'
+        }]
+      })
     }
   }
 
@@ -235,9 +240,9 @@ export default class ProfilesController {
    * @tag Artists
    * @description Compare multiple artists side-by-side by providing a list of IDs.
    * @paramQuery ids - Comma-separated list of IDs (e.g., "1,2,3") - @type(string) @required
-   * @responseBody 200 - { "data": [...] }
-   * @responseBody 400 - { "errors": [...] } (validation error)
-   * @responseBody 404 - { "errors": [...] } (some artists not found)
+   * @responseBody 200 - { "data": { "artists": [...] } }
+   * @responseBody 400 - {"errors":[{"message":"Validation error"}]}
+   * @responseBody 404 - {"errors":[{"message":"One or more artists not found."}]}
    */
   public async compare({ request, response }: HttpContextContract) {
     try {
@@ -246,20 +251,39 @@ export default class ProfilesController {
         messages: ProfileValidator.messages,
       })
 
-      const ids = payload.ids.split(',').map((id) => parseInt(id, 10))
+      const ids = payload.ids.split(',').map((id) => parseInt(id.trim(), 10))
       const artists = await Artist.findMany(ids)
 
       if (artists.length !== ids.length) {
-        return response.notFound({ errors: [{ message: 'One or more artists not found.' }] })
+        return response.notFound({
+          errors: [{ message: 'One or more artists not found.', code: 'ARTISTS_NOT_FOUND' }],
+        })
       }
 
-      return response.ok({ data: artists })
+      const artistsData = await Promise.all(
+        artists.map(async (artist) => {
+          const loadedGenres = await GenreService.loadGenresByIds(artist.genresId)
+          return {
+            id: artist.id,
+            name: artist.name,
+            genres: loadedGenres,
+            popularity: artist.popularity,
+          }
+        })
+      )
+
+      return response.ok({
+        data: {
+          artists: artistsData,
+        },
+      })
     } catch (error) {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
-      } else {
-        return response.internalServerError({ errors: [{ message: 'Comparison failed.' }] })
       }
+      return response.internalServerError({
+        errors: [{ message: 'Comparison failed.', code: 'INTERNAL_ERROR' }],
+      })
     }
   }
 }

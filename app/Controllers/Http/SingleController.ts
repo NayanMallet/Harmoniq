@@ -49,42 +49,74 @@ export default class SinglesController {
         title,
         artistId,
         sortBy,
-        sortDirection,
+        sortDirection = 'asc',
         page = 1,
         limit = 10,
       } = payload
 
-      const query = Single.query()
+      let query = Single.query()
 
-      // Filtre par genre
       if (genreId) {
         query.where('genre_id', genreId)
       }
 
-      // Filtre par titre
       if (title) {
         const lowerTitle = title.toLowerCase()
         query.whereRaw('LOWER(title) LIKE ?', [`%${lowerTitle}%`])
       }
 
-      // Filtre par artiste
       if (artistId) {
         query.where('artist_id', artistId)
       }
 
-      // Tri
-      if (sortBy) {
-        query.orderBy(sortBy, sortDirection || 'asc')
+      if (sortBy === 'title' || sortBy === 'releaseDate') {
+        query.orderBy(sortBy, sortDirection)
+      } else if (sortBy === 'popularity') {
+        query = Single.query()
+          .leftJoin('stats', 'stats.single_id', 'singles.id')
+          .select('singles.*')
+          .select(Database.raw('COALESCE(stats.listens_count, 0) as popularityCount'))
+
+        if (genreId) {
+          query.where('genre_id', genreId)
+        }
+        if (title) {
+          const lowerTitle = title.toLowerCase()
+          query.whereRaw('LOWER(title) LIKE ?', [`%${lowerTitle}%`])
+        }
+        if (artistId) {
+          query.where('artist_id', artistId)
+        }
+
+        query.groupBy('singles.id', 'stats.listens_count')
+        query.orderBy('popularityCount', sortDirection)
       } else {
-        // Par défaut, tri par date de création desc
         query.orderBy('created_at', 'desc')
       }
 
-      const singles = await query.paginate(page, limit)
+      const singlesPage = await query.paginate(page, limit)
+
+      // Charge la relation stats pour chaque Single
+      const singleRecords = singlesPage.all()
+      await Promise.all(singleRecords.map((single) => single.load('stats')))
 
       return response.ok({
-        meta: singles.getMeta(),
-        data: singles.all(),
+        meta: singlesPage.getMeta(),
+        data: singleRecords.map((single) => ({
+          id: single.id,
+          title: single.title,
+          artistId: single.artistId,
+          genreId: single.genreId,
+          releaseDate: single.releaseDate,
+          createdAt: single.createdAt,
+          updatedAt: single.updatedAt,
+          stats: single.stats
+            ? {
+              listensCount: single.stats.listensCount,
+              revenue: single.stats.revenue,
+            }
+            : null,
+        })),
       })
     } catch (error) {
       if (error.messages?.errors) {
@@ -398,6 +430,7 @@ export default class SinglesController {
       .preload('artist')
       .preload('album')
       .preload('genre')
+      .preload('stats')
       .preload('metadata', (q) => q.preload('copyrights'))
       .first()
 
@@ -412,6 +445,12 @@ export default class SinglesController {
       artist: single.artist ? { id: single.artist.id, name: single.artist.name } : null,
       genre: single.genre ? { id: single.genre.id, name: single.genre.name } : null,
       releaseDate: single.releaseDate,
+      stats: single.stats
+        ? {
+          listensCount: single.stats.listensCount,
+          revenue: single.stats.revenue,
+        }
+        : null,
       metadata: single.metadata,
     })
   }

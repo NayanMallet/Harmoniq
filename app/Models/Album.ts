@@ -28,9 +28,6 @@ export default class Album extends BaseModel {
   @column()
   public genresId?: number[]
 
-  @column.dateTime()
-  public releaseDate?: DateTime
-
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

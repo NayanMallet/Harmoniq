@@ -1,3 +1,5 @@
+// app/Controllers/Http/AuthController.ts
+
 import EmailService from 'App/Services/EmailService'
 import Artist from 'App/Models/Artist'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
@@ -5,11 +7,17 @@ import AuthValidator from 'App/Validators/AuthValidator'
 import { randomBytes } from 'crypto'
 import { DateTime } from 'luxon'
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Authentication
+ *     description: Endpoints for user authentication (register, login, password reset, etc.)
+ */
 export default class AuthController {
-
   /**
    * @register
    * @summary Register a new artist
+   * @tag Authentication
    * @description Registers a new artist and sends a verification email.
    * @requestBody
    * {
@@ -50,6 +58,7 @@ export default class AuthController {
   /**
    * @verifyEmail
    * @summary Verify artist's email
+   * @tag Authentication
    * @description Verifies the artist's email using the provided verification code.
    * @requestBody
    * {
@@ -92,6 +101,7 @@ export default class AuthController {
   /**
    * @login
    * @summary Log in an artist
+   * @tag Authentication
    * @description Logs in an artist and returns an API token.
    * @requestBody
    * {
@@ -138,6 +148,7 @@ export default class AuthController {
   /**
    * @requestPasswordReset
    * @summary Request password reset
+   * @tag Authentication
    * @description Requests a password reset. Sends a reset link to the artist's email address.
    * @requestBody
    * {
@@ -177,6 +188,7 @@ export default class AuthController {
   /**
    * @resetPassword
    * @summary Reset password
+   * @tag Authentication
    * @description Resets the artist's password using a valid reset token.
    * @requestBody
    * {
@@ -221,6 +233,7 @@ export default class AuthController {
   /**
    * @logout
    * @summary Log out the authenticated artist
+   * @tag Authentication
    * @description Logs out the currently authenticated artist by revoking the API token.
    * @responseBody 200 - { "message": "Logged out successfully." }
    * @responseBody 401 - { "errors": [{ "message": "Unauthorized." }] }
@@ -239,6 +252,7 @@ export default class AuthController {
   /**
    * @deleteAccount
    * @summary Delete the authenticated artist's account
+   * @tag Authentication
    * @description Permanently deletes the authenticated artist's account.
    * @responseBody 200 - { "message": "Account deleted successfully." }
    * @responseBody 401 - { "errors": [{ "message": "Unauthorized." }] }

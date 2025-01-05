@@ -33,7 +33,6 @@ export default class CreateAllTables extends BaseSchema {
         .references('id').inTable('artists').onDelete('CASCADE')
       // tableau d'IDs de genres
       table.json('genres_id').nullable()
-      table.timestamp('release_date', { useTz: true }).nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).notNullable()
     })

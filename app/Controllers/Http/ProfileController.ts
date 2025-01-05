@@ -1,12 +1,22 @@
+// app/Controllers/Http/ProfilesController.ts
+
 import Artist from 'App/Models/Artist'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import ProfileValidator from 'App/Validators/ProfileValidator'
 import GenreService from 'App/Services/GenreService'
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Artists
+ *     description: Endpoints for managing artist profiles
+ */
 export default class ProfilesController {
   /**
    * @update
+   * @summary Update artist profile
    * @operationId updateArtistProfile
+   * @tag Artists
    * @description Updates the profile of the authenticated artist.
    * @requestBody <ProfileValidator.updateSchema>
    * @responseBody 200 - <Artist> - Profile updated successfully.
@@ -78,10 +88,12 @@ export default class ProfilesController {
 
   /**
    * @show
+   * @summary Get artist profile by ID
    * @operationId showArtistProfile
+   * @tag Artists
    * @description Fetches the profile of an artist by ID.
-   * @parameters
-   *   - (path) id {number} - The ID of the artist to fetch.
+   *
+   * @paramPath id - The ID of the artist - @type(number) @required
    * @responseBody 200 - <Artist> - Artist profile fetched successfully.
    * @responseBody 404 - {"errors": [{"message":"Artist not found."}]}
    */
@@ -113,8 +125,11 @@ export default class ProfilesController {
 
   /**
    * @index
+   * @summary List artists
    * @operationId listArtists
+   * @tag Artists
    * @description Lists and filters artists by genre, country, city, name. Supports pagination and sorting.
+   *
    * @paramQuery genreId - Filter by genre ID (must be in Artist.genres_id) - @type(number)
    * @paramQuery country - Filter by country (case-insensitive) - @type(string)
    * @paramQuery city - Filter by city (case-insensitive) - @type(string)
@@ -122,6 +137,7 @@ export default class ProfilesController {
    * @paramQuery sort - "popularity" or "name" - @type(string)
    * @paramQuery page - Page number (1..10000) - @type(number)
    * @paramQuery limit - Page size (1..100) - @type(number)
+   *
    * @responseBody 200 - <Artist[]>.paginated() // Paginated list of artists
    * @responseBody 400 - {"errors":[{"message":"Validation error"}]}
    * @responseBody 500 - {"errors":[{"message":"Internal error"}]}
@@ -212,6 +228,17 @@ export default class ProfilesController {
     }
   }
 
+  /**
+   * @compare
+   * @summary Compare multiple artists
+   * @operationId compareArtists
+   * @tag Artists
+   * @description Compare multiple artists side-by-side by providing a list of IDs.
+   * @paramQuery ids - Comma-separated list of IDs (e.g., "1,2,3") - @type(string) @required
+   * @responseBody 200 - { "data": [...] }
+   * @responseBody 400 - { "errors": [...] } (validation error)
+   * @responseBody 404 - { "errors": [...] } (some artists not found)
+   */
   public async compare({ request, response }: HttpContextContract) {
     try {
       const payload = await request.validate({

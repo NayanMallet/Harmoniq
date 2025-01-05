@@ -7,26 +7,34 @@ import Metadata from 'App/Models/Metadata'
 import AlbumValidator from 'App/Validators/AlbumValidator'
 import GenreService from 'App/Services/GenreService'
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Albums
+ *     description: Endpoints for managing albums
+ */
 export default class AlbumsController {
-
   /**
    * @index
+   * @summary List albums
    * @operationId listAlbums
+   * @tag Albums
    * @description Lists and filters albums with pagination.
+   *
    * @paramQuery genreId - Filter by a genre ID that is in album.genresId - @type(number)
    * @paramQuery title - Filter by partial or complete album title (case-insensitive) - @type(string)
    * @paramQuery artistId - Filter by artist ID - @type(number)
-   * @paramQuery sortBy - "title" or "releaseDate" - @type(string)
+   * @paramQuery sortBy - "title" (optional) - @type(string)
    * @paramQuery sortDirection - "asc" or "desc" - @type(string)
    * @paramQuery page - Page number (1..10000) - @type(number)
    * @paramQuery limit - Page size (1..100) - @type(number)
+   *
    * @responseBody 200 - <Album[]>.paginated()
    * @responseBody 400 - {"errors":[{"message":"Validation error"}]}
    * @responseBody 500 - {"errors":[{"message":"Internal error"}]}
    */
   public async index({ request, response }: HttpContextContract) {
     try {
-      // 1. Valider les query params
       const payload = await request.validate({
         schema: AlbumValidator.filterSchema,
         messages: AlbumValidator.messages,
@@ -42,24 +50,20 @@ export default class AlbumsController {
         limit = 10,
       } = payload
 
-      // 2. Construire la requête
       const query = Album.query()
 
-      // Filtrer par genre => JSON_CONTAINS(albums.genres_id, [genreId])
+      // Filtre par genre
       if (genreId) {
-        query.whereRaw(
-          'JSON_CONTAINS(genres_id, CAST(? as JSON))',
-          [genreId]
-        )
+        query.whereRaw('JSON_CONTAINS(genres_id, CAST(? as JSON))', [genreId])
       }
 
-      // Filtrer par title (case-insensitive)
+      // Filtre par title
       if (title) {
         const lowerTitle = title.toLowerCase()
         query.whereRaw('LOWER(title) LIKE ?', [`%${lowerTitle}%`])
       }
 
-      // Filtrer par artiste
+      // Filtre par artiste
       if (artistId) {
         query.where('artist_id', artistId)
       }
@@ -67,27 +71,21 @@ export default class AlbumsController {
       // Tri
       if (sortBy === 'title') {
         query.orderByRaw(`LOWER(title) ${sortDirection || 'asc'}`)
-      } else if (sortBy === 'releaseDate') {
-        query.orderBy('release_date', sortDirection || 'asc')
       } else {
-        // Tri par défaut => "created_at desc"
+        // Par défaut => created_at desc
         query.orderBy('created_at', 'desc')
       }
 
-      // 3. Pagination
       const albums = await query.paginate(page, limit)
 
-      // 4. Retourner la réponse
       return response.ok({
         meta: albums.getMeta(),
         data: albums.all(),
       })
     } catch (error) {
-      // Erreur de validation => 400
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      // Erreur interne => 500
       return response.internalServerError({
         errors: [{ message: 'Failed to fetch albums.', code: 'INTERNAL_ERROR' }],
       })
@@ -96,8 +94,11 @@ export default class AlbumsController {
 
   /**
    * @create
+   * @summary Create an album
    * @operationId createAlbum
-   * @description Creates a new album
+   * @tag Albums
+   * @description Creates a new album.
+   *
    * @requestBody <AlbumValidator.createSchema>
    * @responseBody 201 - {"message":"Album created successfully","data":<Album>}
    * @responseBody 400 - {"errors":[{"message":"Validation error."}]}
@@ -113,7 +114,6 @@ export default class AlbumsController {
 
       const album = await Album.create({
         title: payload.title,
-        releaseDate: payload.releaseDate,
         artistId: artist.id,
       })
 
@@ -127,14 +127,19 @@ export default class AlbumsController {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Create album failed.', code: 'INTERNAL_ERROR' }] })
+      return response.internalServerError({
+        errors: [{ message: 'Create album failed.', code: 'INTERNAL_ERROR' }],
+      })
     }
   }
 
   /**
    * @update
+   * @summary Update an album
    * @operationId updateAlbum
-   * @description Updates an existing album
+   * @tag Albums
+   * @description Updates an existing album.
+   *
    * @paramPath id - The ID of the album - @type(number) @required
    * @requestBody <AlbumValidator.updateSchema>
    * @responseBody 200 - {"message":"Album updated successfully","data":<Album>}
@@ -146,7 +151,9 @@ export default class AlbumsController {
     const artist = auth.user as Artist
     const album = await Album.find(params.id)
     if (!album || album.artistId !== artist.id) {
-      return response.notFound({ errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }] })
+      return response.notFound({
+        errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }],
+      })
     }
 
     try {
@@ -157,7 +164,6 @@ export default class AlbumsController {
 
       album.merge({
         title: payload.title,
-        releaseDate: payload.releaseDate,
       })
       await album.save()
 
@@ -178,14 +184,19 @@ export default class AlbumsController {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
-      return response.internalServerError({ errors: [{ message: 'Update album failed.', code: 'INTERNAL_ERROR' }] })
+      return response.internalServerError({
+        errors: [{ message: 'Update album failed.', code: 'INTERNAL_ERROR' }],
+      })
     }
   }
 
   /**
    * @show
+   * @summary Get album by ID
    * @operationId getAlbum
+   * @tag Albums
    * @description Retrieves an album by ID.
+   *
    * @paramPath id - The ID of the album - @type(number) @required
    * @responseBody 200 - <Album>
    * @responseBody 404 - {"errors":[{"message":"Album not found."}]}
@@ -212,7 +223,6 @@ export default class AlbumsController {
           name: album.artist.name,
         },
         genres: loadedGenres,
-        releaseDate: album.releaseDate,
         created_at: album.createdAt,
         updated_at: album.updatedAt,
         singles: album.singles,
@@ -223,8 +233,11 @@ export default class AlbumsController {
 
   /**
    * @delete
+   * @summary Delete an album
    * @operationId deleteAlbum
+   * @tag Albums
    * @description Deletes an album by ID.
+   *
    * @paramPath id - The ID of the album - @type(number) @required
    * @responseBody 200 - {"message":"Album deleted successfully"}
    * @responseBody 401 - {"errors":[{"message":"Unauthorized."}]}
@@ -234,7 +247,9 @@ export default class AlbumsController {
     const artist = auth.user as Artist
     const album = await Album.find(params.id)
     if (!album || album.artistId !== artist.id) {
-      return response.notFound({ errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }] })
+      return response.notFound({
+        errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }],
+      })
     }
 
     await album.delete()

@@ -29,7 +29,7 @@ export default class SinglesController {
    * @paramQuery genreId - Filter by genre ID - @type(number)
    * @paramQuery title - Filter by partial or complete single title (case-insensitive) - @type(string)
    * @paramQuery artistId - Filter by artist ID - @type(number)
-   * @paramQuery sortBy - "title", "releaseDate", or "popularity" - @type(string)
+   * @paramQuery sort - "title", "releaseDate", or "popularity" - @type(string)
    * @paramQuery sortDirection - "asc" or "desc" - @type(string)
    * @paramQuery page - Page number (1..10000) - @type(number)
    * @paramQuery limit - Page size (1..100) - @type(number)
@@ -49,7 +49,7 @@ export default class SinglesController {
         genreId,
         title,
         artistId,
-        sortBy,
+        sort,
         sortDirection = 'asc',
         page = 1,
         limit = 10,
@@ -70,9 +70,9 @@ export default class SinglesController {
         query.where('artist_id', artistId)
       }
 
-      if (sortBy === 'title' || sortBy === 'releaseDate') {
-        query.orderBy(sortBy, sortDirection)
-      } else if (sortBy === 'popularity') {
+      if (sort === 'title' || sort === 'releaseDate') {
+        query.orderBy(sort, sortDirection)
+      } else if (sort === 'popularity') {
         query = Single.query()
           .leftJoin('stats', 'stats.single_id', 'singles.id')
           .select('singles.*')

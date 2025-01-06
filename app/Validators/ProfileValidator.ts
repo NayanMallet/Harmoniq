@@ -45,8 +45,7 @@ export default class ProfileValidator {
     name: schema.string.optional({}, [rules.maxLength(255)]),
 
     sort: schema.enum.optional(['popularity', 'name'] as const),
-    // Optionnel : si vous voulez gérer la direction du tri dans le validateur
-    // sortDirection: schema.enum.optional(['asc', 'desc'] as const),
+    sortDirection: schema.enum.optional(['asc', 'desc'] as const),
 
     page: schema.number.optional([rules.range(1, 10000)]),
     limit: schema.number.optional([rules.range(1, 100)]),

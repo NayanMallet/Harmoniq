@@ -16,9 +16,6 @@ export default class AlbumValidator {
     }),
   })
 
-  /**
-   * Filtre/Pagination/Tri pour lister les albums
-   */
   public static filterSchema = schema.create({
     genreId: schema.number.optional([
       rules.exists({ table: 'genres', column: 'id' }),

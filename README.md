@@ -171,58 +171,162 @@ Pour réinitialiser et appliquer les migrations :
   - **Delete Account** : `POST /auth/delete-account`
 
 ### Gestion des Artistes
+- **Récupérer/Filtrer les artistes** : `GET /artists`
+Query Params :
+  - `name` : Recherche par nom d'artiste
+  - `genreId` : Filtrer par genre musical
+  - `country` : Filtrer par pays
+  - `city` : Filtrer par ville
+  - `sort` : Trier par titre, par date de sortie ou par popularité (title/releaseDate/popularity)
+  - `sortDirection` : Ordre de tri (asc/desc)
+  - `limit` : Limite le nombre de résultats
+  - `page` : Numéro de la page
 - **Récupérer un profil artiste** : `GET /artists/:id`
 - **Mettre à jour un profil artiste** : `PUT /artists/:id`
 
-### Albums et Singles
-- **Créer un album** : `POST /albums`
-
-  ```json
-  {
-    "title": "My First Album",
-    "release_date": "2024-12-01",
-    "metadata": {
-      "genre": "Pop"
+    ```json
+    {
+      "biography": "Artist Bio",
+      "social_links": {
+        "facebook": "https://facebook.com/artist",
+        "instagram": "https://instagram.com/artist",
+        "your_custom_link": "https://yourlink.com/artist"
+      },
+      "location": {
+        "country": "France",
+        "city": "Paris"
+      }
     }
-  }
-  ```
+    ```
+- **Comparer les artistes** : `GET /artists/compare?ids=1,2,3`
+Query Params :
+  - `ids` : Liste d'identifiants d'artistes séparés par des virgules
 
+### Singles
 - **Créer un single** : `POST /singles`
 
   ```json
   {
     "title": "My First Single",
-    "artist_id": 1,
-    "album_id": null,
-    "release_date": "2024-12-01",
+    "genreId": 1, // ID du genre musical
+    "albumId": null, // ID de l'album (optionnel)
+    "release_date": "2025-01-01",
     "metadata": {
-      "genre": "Rock"
+      "coverUrl": "https://example.com/cover.jpg",
+      "lyrics": "Lyrics of the song"
+    },
+    "copyrights": [
+      {
+        "artistId": 1, // ID de l'artiste
+        "role": "Composer",
+        "percentage": 25
+      },
+      {
+        "artistId": 2, // ID du deuxième artiste (optionnel) => feature artist
+        "role": "Singer",
+        "percentage": 25
+      },
+      {
+        "ownerName": "John Doe",
+        "role": "Producer",
+        "percentage": 50
+      }
+    ]
+  }
+  ```
+- **Récupérer un single** : `GET /singles/:id`
+- **Récupérer/Filtrer les singles** : `GET /singles`
+Query Params :
+  - `title` : Recherche par titre de single
+  - `genreId` : Filtrer par genre musical
+  - `artistId` : Filtrer par identifiant d'artiste
+  - `sortBy` : Trier par date de sortie ou par titre (release_date/title)
+  - `sortDirection` : Ordre de tri (asc/desc)
+  - `limit` : Limite le nombre de résultats
+  - `page` : Numéro de la page
+  - 
+- **Mettre à jour un single** : `PUT /singles/:id`
+
+  ```json
+  {
+    "title": "New title",
+    "genreId": 1, // ID du genre musical
+    "albumId": null, // ID de l'album (optionnel)
+    "release_date": "2025-01-01",
+    "metadata": {
+      "coverUrl": "https://example.com/cover.jpg",
+      "lyrics": "Lyrics of the song"
+    },
+    "copyrights": [
+      {
+        "artistId": 1, // ID de l'artiste
+        "role": "Composer",
+        "percentage": 50
+      },
+      {
+        "ownerName": "John Doe",
+        "role": "Producer",
+        "percentage": 50
+      }
+    ]
+  }
+  ```
+- **Supprimer un single** : `DELETE /singles/:id`
+
+### Albums
+- **Créer un album** : `POST /albums`
+
+  ```json
+  {
+    "title": "My First Album",
+    "metadata": {
+      "coverUrl": "https://example.com/cover.jpg"
     }
   }
   ```
+- **Récupérer un album** : `GET /albums/:id`
+- **Récupérer/Filtrer les albums** : `GET /albums`
+Query Params :
+  - `title` : Recherche par titre d'album
+  - `genreId` : Filtrer par genre musical
+  - `artistId` : Filtrer par identifiant d'artiste
+  - `sortBy` : Trier par date de sortie ou par titre (releaseDate/title)
+  - `sortDirection` : Ordre de tri (asc/desc)
+  - `limit` : Limite le nombre de résultats
+  - `page` : Numéro de la page
+- **Mettre à jour un album** : `PUT /albums/:id`
+
+  ```json
+  {
+    "title": "New title",
+    "metadata": {
+      "coverUrl": "https://example.com/cover.jpg"
+    }
+  }
+  ```
+- **Supprimer un album** : `DELETE /albums/:id`
+
+### Genres
+- **Récupérer la liste des genres** : `GET /genres`
+- **Créer un genre** : `POST /genres`
+
+  ```json
+  {
+    "name": "My Genre",
+    "description": "Description of the genre"
+  }
+  ```
+  - **Supprimer un genre** : `DELETE /genres/:id`
 
 ### Statistiques
-- **Récupérer les statistiques d'un single** : `GET /stats/:single_id`
-
-### Playlists
-- **Créer une playlist** : `POST /playlists`
+- **Récupérer les statistiques globales d'un artiste** : `GET /stats/artist/:id`
+- **Mettre à jour les statistiques d'un single** : `PUT /stats/singles/:id`
 
   ```json
   {
-    "title": "My Playlist",
-    "artist_id": 1
+    "listensCount": 55000
   }
   ```
-
-- **Ajouter un single à une playlist** : `POST /playlists/:playlist_id/singles`
-
-  ```json
-  {
-    "single_id": 1
-  }
-  ```
-
----
 
 ### ❤️ Contribuez
 1. Forkez le dépôt.

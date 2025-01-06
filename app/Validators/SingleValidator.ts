@@ -63,7 +63,7 @@ export default class SingleValidator {
     artistId: schema.number.optional([
       rules.exists({ table: 'artists', column: 'id' }),
     ]),
-    sortBy: schema.enum.optional(['title', 'releaseDate', 'popularity'] as const),
+    sort: schema.enum.optional(['title', 'releaseDate', 'popularity'] as const),
     sortDirection: schema.enum.optional(['asc', 'desc'] as const),
     page: schema.number.optional([rules.range(1, 10000)]),
     limit: schema.number.optional([rules.range(1, 100)]),

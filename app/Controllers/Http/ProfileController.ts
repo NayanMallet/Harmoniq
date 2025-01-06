@@ -65,7 +65,7 @@ export default class ProfilesController {
       artist.merge(updateData)
       await artist.save()
 
-      // Si des erreurs liées à des champs interdits existent, on retourne une réponse partielle
+      // Si des erreurs liées à des champs interdits existent retour d'une réponse partielle
       if (fieldErrors.length > 0) {
         return response.status(200).json({
           message: 'Profile updated successfully with partial warnings.',
@@ -149,7 +149,6 @@ export default class ProfilesController {
    */
   public async index({ request, response }: HttpContextContract) {
     try {
-      // 1. Valider la query string
       const payload = await request.validate({
         schema: ProfileValidator.searchSchema,
         messages: ProfileValidator.messages,
@@ -165,38 +164,34 @@ export default class ProfilesController {
         limit = 10,
       } = payload
 
-      // Optionnel : si vous gérez la direction du tri
-      // sinon, vous pouvez ignorer
       const sortDirection = request.input('sortDirection', 'asc').toLowerCase()
       const validSortDirection = ['asc', 'desc'].includes(sortDirection)
         ? sortDirection
         : 'asc'
 
-      // 2. Construire la requête Lucid
       const query = Artist.query()
 
-      // Filtrer par genreId => JSON_CONTAINS(artist.genres_id, [genreId])
+      // Filtrer par genreId
       if (genreId) {
-        // On peut cast en JSON
         query.whereRaw(
           'JSON_CONTAINS(genres_id, CAST(? as JSON))',
           [genreId]
         )
       }
 
-      // Filtrer par country (case-insensitive)
+      // Filtrer par country
       if (country) {
         const lowerCountry = country.toLowerCase()
         query.whereRaw('LOWER(JSON_EXTRACT(location, "$.country")) LIKE ?', [`%${lowerCountry}%`])
       }
 
-      // Filtrer par city (case-insensitive)
+      // Filtrer par city
       if (city) {
         const lowerCity = city.toLowerCase()
         query.whereRaw('LOWER(JSON_EXTRACT(location, "$.city")) LIKE ?', [`%${lowerCity}%`])
       }
 
-      // Filtrer par name (case-insensitive)
+      // Filtrer par name
       if (name) {
         const lowerName = name.toLowerCase()
         query.whereRaw('LOWER(name) LIKE ?', [`%${lowerName}%`])
@@ -206,14 +201,12 @@ export default class ProfilesController {
       if (sort === 'popularity') {
         query.orderBy('popularity', validSortDirection as 'asc' | 'desc')
       } else if (sort === 'name') {
-        // insensible à la casse
         query.orderByRaw(`LOWER(name) ${validSortDirection}`)
       } else {
-        // Par défaut, on tri par 'created_at' desc, par exemple
+        // Par défaut, on tri par 'created_at'
         query.orderBy('created_at', 'desc')
       }
 
-      // Pagination
       const artists = await query.paginate(page, limit)
 
       return response.ok({
@@ -221,12 +214,10 @@ export default class ProfilesController {
         data: artists.all(),
       })
     } catch (error) {
-      // Erreur de validation => 400
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })
       }
 
-      // Erreur interne => 500
       return response.internalServerError({
         errors: [{ message: 'Failed to fetch artists.', code: 'INTERNAL_ERROR' }],
       })

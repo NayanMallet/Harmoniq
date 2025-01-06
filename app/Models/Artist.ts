@@ -11,7 +11,6 @@ import {
 import Album from './Album'
 import Single from './Single'
 import Playlist from './Playlist'
-import Notification from './Notification'
 import { Location, SearchHistoryEntry } from '../../resources/utils/Interfaces'
 import Genres from 'App/Models/Genre'
 
@@ -87,7 +86,4 @@ export default class Artist extends BaseModel {
 
   @hasMany(() => Playlist)
   public playlists: HasMany<typeof Playlist>
-
-  @hasMany(() => Notification)
-  public notifications: HasMany<typeof Notification>
 }

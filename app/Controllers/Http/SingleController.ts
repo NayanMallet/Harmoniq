@@ -10,6 +10,7 @@ import Stat from 'App/Models/Stat'
 import Database from '@ioc:Adonis/Lucid/Database'
 import SingleValidator from 'App/Validators/SingleValidator'
 import Copyright from 'App/Models/Copyright'
+import EmailService from 'App/Services/EmailService'
 
 /**
  * @swagger
@@ -175,6 +176,7 @@ export default class SinglesController {
         })
       }
 
+      // On clean le tire dans le cas ou l'utilisateur aurait mis des featuring dans le titre
       let cleanedTitle = this.removeFeatPart(payload.title)
 
       // Construit le titre final si on a des featurings
@@ -243,6 +245,9 @@ export default class SinglesController {
       if (single.albumId) {
         await this.updateAlbumGenres(single.albumId)
       }
+
+      // Envoi de l'email de publication
+      await this.sendPublicationEmail(mainArtist, single)
 
       return response.created({
         message: 'Single created successfully',
@@ -540,5 +545,37 @@ export default class SinglesController {
     // @ts-ignore
     album.genresId = JSON.stringify([...new Set(ids)])
     await album.save()
+  }
+
+  /**
+   * Envoi un email de publication à l'artiste
+   * @param artist - L'artiste
+   * @param single - Le single publié
+   * @private
+   */
+  private async sendPublicationEmail(artist: Artist, single: Single) {
+    let emailData: any;
+
+    if (single.albumId) {
+      const album = await Album.find(single.albumId);
+
+      emailData = {
+        subject: `Publication d'un nouveau single dans votre album "${album?.title}"`,
+        singleTitle: single.title,
+        releaseDate: single.releaseDate?.toFormat('dd/MM/yyyy'),
+      };
+    } else {
+      emailData = {
+        subject: 'Publication de votre nouveau single',
+        singleTitle: single.title,
+        releaseDate: single.releaseDate?.toFormat('dd/MM/yyyy'),
+      };
+    }
+
+    await EmailService.sendSinglePublicationEmail(
+      artist.email,
+      emailData.subject,
+      emailData
+    );
   }
 }

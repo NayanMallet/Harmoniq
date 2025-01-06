@@ -149,17 +149,6 @@ export default class CreateAllTables extends BaseSchema {
       table.primary(['playlist_id', 'single_id'])
     })
 
-    // Table des notifications
-    this.schema.createTable('notifications', (table) => {
-      table.increments('id')
-      table.integer('artist_id').unsigned().notNullable()
-        .references('id').inTable('artists').onDelete('CASCADE')
-      table.text('message').notNullable()
-      table.boolean('is_read').notNullable().defaultTo(false)
-      table.timestamp('created_at', { useTz: true }).notNullable()
-      table.timestamp('updated_at', { useTz: true }).notNullable()
-    })
-
     // Table des tokens API
     this.schema.createTable('api_tokens', (table) => {
       table.increments('id')

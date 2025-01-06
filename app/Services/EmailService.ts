@@ -30,9 +30,6 @@ class EmailService {
     })
   }
 
-  /**
-   * Envoie un email de félicitations lorsque l’artiste franchit un palier (Gold/Platinum/Diamond).
-   */
   public async sendAwardEmail(to: string, artistName: string, singleTitle: string, awardName: string, listensCount: number) {
     await Mail.send((message) => {
       message
@@ -50,6 +47,16 @@ class EmailService {
     }).catch((error) => {
       console.error('Error sending award email:', error)
     })
+  }
+
+  public async sendSinglePublicationEmail(to: string, subject: string, data: any) {
+    await Mail.send((message) => {
+      message
+        .from(Env.get('SMTP_SENDER'), 'Harmoniq')
+        .to(to)
+        .subject(subject)
+        .htmlView('emails/single_publication', data);
+    });
   }
 }
 

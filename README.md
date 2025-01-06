@@ -1,232 +1,263 @@
-# Harmoniq - API Project
+# 🎵 Harmoniq - Gestionnaire pour Artistes Musicaux
 
-Harmoniq est une API de gestion de musique et de profils d'artistes, offrant des fonctionnalités de distribution de singles/albums, de recherche avancée, de statistiques, de playlists, et plus encore. L’objectif est de disposer d’une plateforme d’administration complète pour un label musical.
+**Harmoniq** est une plateforme REST API pour les artistes, permettant la gestion de singles, albums, droits d'auteur, statistiques et playlists. L'API inclut un système d'authentification sécurisé et une vérification par email.
 
-## Sommaire
+## Table des Matières
 
-1. [Fonctionnalités Principales](#fonctionnalités-principales)
-2. [Technologies Utilisées](#technologies-utilisées)
-3. [Structure du Projet](#structure-du-projet)
-4. [Installation](#installation)
-5. [Configuration](#configuration)
-6. [Lancement du Projet](#lancement-du-projet)
-7. [Documentation OpenAPI/Swagger](#documentation-openapiswagger)
-8. [Endpoints Principaux](#endpoints-principaux)
-9. [Contribution](#contribution)
-10. [Licence](#licence)
+- [Fonctionnalités](#fonctionnalités)
+- [Schéma de Base de Données](#schéma-de-base-de-données)
+- [Technologies Utilisées](#technologies-utilisées)
+- [Installation](#installation)
+- [Migrations](#migrations)
+- [API](#api)
+  - [Authentification](#authentification)
+  - [Gestion des Artistes](#gestion-des-artistes)
+  - [Albums et Singles](#albums-et-singles)
+  - [Statistiques](#statistiques)
+  - [Playlists](#playlists)
+- [Contribution](#contribution)
 
 ---
 
-## Fonctionnalités Principales
+## 📋 Fonctionnalités
 
-- **Authentification et gestion des artistes**
-  - Enregistrement d’un artiste avec vérification par email.
-  - Connexion, déconnexion, réinitialisation de mot de passe.
-  - Suppression de compte.
-  - Mise à jour du profil d’artiste (biographie, liens sociaux, localisation, etc.).
+- **Authentification et Vérification** :
+  - Inscription avec envoi de code de vérification par email.
+  - Connexion sécurisée avec gestion des tokens via la table `api_tokens`.
+  - Vérification obligatoire par email pour activer un compte.
 
-- **Gestion des singles**
-  - Création, mise à jour et suppression d’un single.
-  - Ajout de featurings via une table pivot (`single_featurings`).
-  - Ajout de métadonnées (coverUrl, lyrics, copyrights).
-  - Filtrage et pagination sur la liste des singles (genreId, titre, artisteId, etc.).
+- **Gestion des Artistes** :
+  - Filtrage et recherche des artistes.
+  - Récupération d'un profil artiste.
+  - Création et mise à jour des profils artistes.
+  - Champs personnalisables : biographie, localisation, liens sociaux.
+  - Suppression de compte sécurisée.
 
-- **Gestion des albums**
-  - Création, mise à jour et suppression d’un album.
-  - Ajout d’un tableau de genres (stockés en JSON).
-  - Ajout de métadonnées (coverUrl, etc.).
-  - Filtrage et pagination sur la liste des albums (genreId, titre, artisteId, etc.).
+- **Distribution de Contenu** :
+  - Gestion des albums et singles, avec métadonnées (genre, date de sortie).
+  - Liaison des singles avec des albums.
+  - Création et mise à jour des albums et singles.
+  - Suppression des albums et singles.
+  - Genres musical de l'artiste synchronisé avec les singles.
 
-- **Gestion des genres**
-  - Création d’un nouveau genre.
-  - Suppression d’un genre.
-  - Listing de tous les genres.
+- **Suivi des Statistiques** :
+  - Nombre d'écoutes et revenus par single.
+  - Statistiques détaillées par single.
 
-- **Profil d’artiste**
-  - Consultation du profil d’artiste par ID.
-  - Filtrage/pagination des artistes par genre, nom, popularité, localisation (pays, ville).
+---
 
-- **Statistiques**
-  - Chaque single possède des statistiques (nombre d’écoutes, revenus).
-  - Génération automatique d’une ligne Stat lors de la création d’un single.
+## Schéma de Base de Données
 
-- **Recherche avancée**
-  - Recherche insensible à la casse (pour les titres de single ou le nom d’artiste).
-  - Filtres multiples (genre, localisation, popularité, etc.).
-  - Tri et pagination.
+Voici le schéma de la base de données utilisé pour le projet (généré avec [dbdiagram.io](https://dbdiagram.io)) :
 
-- **Documentation OpenAPI**
-  - Adonis AutoSwagger pour générer la documentation Swagger en fonction des annotations dans les contrôleurs.
+![Schéma de Base de Données](https://github.com/user-attachments/assets/819be26f-e7a9-4a6d-a42f-c62a83538ca4)
+ng)
 
 ---
 
 ## Technologies Utilisées
 
-- **[AdonisJS](https://adonisjs.com/)** : Framework Node.js pour construire des APIs robustes.
-- **TypeScript** : Langage offrant du typage statique pour JavaScript.
-- **MySQL** (ou autre base SQL) : Stockage des données (artistes, singles, albums, etc.).
-- **adonis-autoswagger** : Génération automatique de documentation OpenAPI/Swagger grâce à des annotations.
-- **Luxon** : Gestion avancée des dates/heures (utilisé pour la vérification de la `releaseDate` ou les tokens expirés).
-- **Knex** (fourni par Adonis) : Builder SQL pour les migrations et requêtes brutes.
+- **Framework** : [AdonisJS](https://adonisjs.com/) (TypeScript)
+- **Base de Données** : MySQL
+- **Authentification** : Adonis Auth (Opaque Tokens)
+- **Gestion des Emails** : Brevo
+- **Modèle de Données** : ORM Lucid
+- **Documentation API** : Adonis AutoSwagger
 
 ---
 
-## Structure du Projet
+## ⚙️ Installation
 
-```bash
-harmoniq/
-  ├─ app/
-  │   ├─ Controllers/
-  │   │   ├─ Http/
-  │   │   │   ├─ AuthController.ts
-  │   │   │   ├─ ProfilesController.ts
-  │   │   │   ├─ SinglesController.ts
-  │   │   │   ├─ AlbumsController.ts
-  │   │   │   ├─ GenresController.ts
-  │   │   │   └─ ...
-  │   ├─ Models/
-  │   │   ├─ Artist.ts
-  │   │   ├─ Album.ts
-  │   │   ├─ Single.ts
-  │   │   ├─ Genre.ts
-  │   │   ├─ Metadata.ts
-  │   │   ├─ Copyright.ts
-  │   │   ├─ Stat.ts
-  │   │   └─ ...
-  │   ├─ Validators/
-  │   │   ├─ AuthValidator.ts
-  │   │   ├─ ProfileValidator.ts
-  │   │   ├─ SingleValidator.ts
-  │   │   ├─ AlbumValidator.ts
-  │   │   ├─ GenresValidator.ts
-  │   │   └─ ...
-  │   ├─ Services/
-  │   │   ├─ EmailService.ts
-  │   │   └─ GenreService.ts
-  │   └─ ...
-  ├─ config/
-  │   ├─ swagger.ts
-  │   └─ ...
-  ├─ database/
-  │   ├─ migrations/
-  │   │   └─ xxxx_create_all_tables.ts
-  │   └─ ...
-  ├─ resources/
-  │   └─ utils/
-  │       ├─ Functions.ts
-  │       └─ Interfaces.ts
-  ├─ start/
-  │   └─ routes.ts
-  └─ package.json
-```
+### Prérequis
+
+- [Node.js](https://nodejs.org/) (version 16 ou supérieure)
+- [MySQL](https://www.mysql.com/)
+- [Docker](https://www.docker.com/) (optionnel pour la base de données)
+- [PNPM](https://pnpm.io/) (gestionnaire de paquets)
+
+### Étapes
+
+1. Clonez le dépôt :
+   ```bash
+   git clone https://github.com/votre-repo/harmoniq.git
+   cd harmoniq
+    ```
+2. Installez les dépendances :
+   ```bash
+    pnpm install
+    ```
+3. Configurez votre fichier .env : Copiez le fichier .env.example :
+   ```bash
+    cp .env.example .env
+    ```
+   Modifiez les variables suivantes :
+  - `DB_CONNECTION`, `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DB_NAME`
+  - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`
+
+4. Exécutez les migrations :
+   ```bash
+   node ace migration:run
+   ```
+
+5. Lancez le serveur :
+   ```bash
+    node ace serve --watch
+    ```
 
 ---
 
-Installation
-
-Cloner ce dépôt :
-```bash
-git clone https://github.com/votre-user/harmoniq.git
-```
-Se positionner dans le dossier :
-```bash
-cd harmoniq
-```
-Installer les dépendances :
-```bash
-npm install
-```
-ou
-```bash
-yarn
-```
+## Migrations
+Pour réinitialiser et appliquer les migrations :
+  ``` bash
+  node ace db:wipe
+  node ace migration:run
+  ```
 
 ---
 
-Configuration
+## API
 
-Fichier .env : Créez ou éditez le fichier .env basé sur .env.example :
-```bash
-HOST=127.0.0.1
-PORT=3333
-APP_KEY=some_random_key
-NODE_ENV=development
+### Authentification
+- **Inscription** : `POST /auth/register`
 
-DB_CONNECTION=mysql
-MYSQL_HOST=127.0.0.1
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD=secret
-MYSQL_DB_NAME=harmoniq_db
-```
-Générer une clé d’application (si non défini) :
-```bash
-node ace generate:key
-```
-Exécuter les migrations :
-```bash
-node ace migration:run
-```
-Lancement du Projet
+  ```json
+  {
+  "email": "artist@example.com",
+  "password": "securepassword",
+  "password_confirmation": "securepassword",
+  "name": "Artist Name"
+  }
+  ```
+- **Vérification par email** : `POST /auth/verify-email`
 
-Démarrer le serveur de développement :
-```bash
-node ace serve --watch
-```
-Par défaut, l’API est accessible sur 
-```bash
-http://127.0.0.1:3333.
-```
-Swagger UI : Accéder à la documentation via
-```bash
-http://127.0.0.1:3333/docs
-```
-(selon la config de swagger.ts).
-Documentation OpenAPI/Swagger
+  ```json
+  {
+    "email": "artist@example.com",
+    "code": "123456" // Remplacer par le code envoyé par email
+  }
+  ```
+- **Connexion** : `POST /auth/login`
 
-Le projet utilise adonis-autoswagger pour générer la documentation.
-Les annotations @tag, @summary, @operationId, @paramQuery, @requestBody, etc. sont présentes dans les contrôleurs.
-Endpoints de documentation :
-```bash
-http://127.0.0.1:3333/swagger
-```
-(JSON)
-```bash
-http://127.0.0.1:3333/docs
-```
-(UI Swagger)
-Endpoints Principaux
+  ```json
+  {
+    "email": "artist@example.com",
+    "password": "securepassword"
+  }
+  ```
+  - **Déconnexion** : `POST /auth/logout`
 
-## Authentication
-POST /api/auth/register
-POST /api/auth/verify-email
-POST /api/auth/login
-POST /api/auth/request-password-reset
-POST /api/auth/reset-password
-POST /api/auth/logout
-DELETE /api/auth/delete-account
+  ```json
+  {
+    "email": "artist@example.com",
+    "password": "securepassword"
+  }
+  ```
+  - **Request Password Reset** : `POST /auth/request-password-reset`
 
-## Artists (Profiles)
-GET /api/artists (filtrer/paginer)
-GET /api/artists/:id (voir un profil)
-PUT /api/artists (mettre à jour le profil de l’artiste connecté)
-GET /api/artists/compare?ids=1,2,3 (comparer plusieurs artistes)
+  ```json
+  {
+    "email": "artist@example.com",
+  }
+  ```
+  - **Password Reset** : `POST /auth/reset-password`
 
-## Singles
-GET /api/singles (filtrer/paginer)
-GET /api/singles/:id (afficher un single)
-POST /api/singles (créer un single)
-PUT /api/singles/:id (mettre à jour)
-DELETE /api/singles/:id (supprimer)
+  ```json
+  {
+    "token": "RESET_TOKEN", // Remplacer par le token envoyé par email
+    "password": "securepassword",
+    "password_confirmation": "securepassword"
+  }
+  ```
+  - **Delete Account** : `POST /auth/delete-account`
 
-## Albums
-GET /api/albums (filtrer/paginer)
-GET /api/albums/:id (afficher un album)
-POST /api/albums (créer un album)
-PUT /api/albums/:id (mettre à jour)
-DELETE /api/albums/:id (supprimer)
+### Gestion des Artistes
+- **Récupérer un profil artiste** : `GET /artists/:id`
+- **Mettre à jour un profil artiste** : `PUT /artists/:id`
 
-## Genres
-GET /api/genres (lister)
-POST /api/genres (créer un genre)
-DELETE /api/genres/:id (supprimer)
+### Albums et Singles
+- **Créer un album** : `POST /albums`
+
+  ```json
+  {
+    "title": "My First Album",
+    "release_date": "2024-12-01",
+    "metadata": {
+      "genre": "Pop"
+    }
+  }
+  ```
+
+- **Créer un single** : `POST /singles`
+
+  ```json
+  {
+    "title": "My First Single",
+    "artist_id": 1,
+    "album_id": null,
+    "release_date": "2024-12-01",
+    "metadata": {
+      "genre": "Rock"
+    }
+  }
+  ```
+
+### Statistiques
+- **Récupérer les statistiques d'un single** : `GET /stats/:single_id`
+
+### Playlists
+- **Créer une playlist** : `POST /playlists`
+
+  ```json
+  {
+    "title": "My Playlist",
+    "artist_id": 1
+  }
+  ```
+
+- **Ajouter un single à une playlist** : `POST /playlists/:playlist_id/singles`
+
+  ```json
+  {
+    "single_id": 1
+  }
+  ```
+
+---
+
+### ❤️ Contribuez
+1. Forkez le dépôt.
+2. Créez une branche pour vos modifications :
+   ```bash
+   git checkout -b feature/new-feature
+   ```
+3. Faites vos changements et soumettez un PR.
+
+---
+
+## Auteur
+Harmoniq a été développé pour simplifier la gestion des artistes et leurs contenus.
+
+---
+
+## 🛠️ Points Techniques
+### Authentification
+- Basée sur le modèle Artist et des tokens stockés dans api_tokens.
+- Vérification des comptes par email avant utilisation.
+
+### Relations de la Base de Données
+- Relation Many-to-One entre Artist et Album.
+- Relation Many-to-One entre Artist et Single.
+- Relation Many-to-Many entre Playlist et Single.
+
+### Envoi d'Emails
+- Configuré avec Brevo pour la vérification par email et les notifications.
+
+---
+
+## 📘 Schéma de la Base de Données
+
+---
+
+
+
+   

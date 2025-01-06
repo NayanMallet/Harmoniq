@@ -174,7 +174,6 @@ export default class CreateAllTables extends BaseSchema {
   public async down() {
     this.schema.dropTable('single_featurings')
     this.schema.dropTable('api_tokens')
-    this.schema.dropTable('notifications')
     this.schema.dropTable('playlist_singles')
     this.schema.dropTable('playlists')
     this.schema.dropTable('stats')

@@ -61,20 +61,6 @@ export default class ProfileValidator {
     ]),
   })
 
-  /**
-   * Les clés reconnues par le validateur.
-   * On s'en servira pour détecter les params inconnus.
-   */
-  public static recognizedKeys = [
-    'genreId',
-    'title',
-    'artistId',
-    'sortBy',
-    'sortDirection',
-    'page',
-    'limit',
-  ]
-
   public static messages: CustomMessages = {
     'genreId.number': 'genreId must be a valid number.',
     'genreId.exists': 'Specified genre does not exist.',

@@ -150,6 +150,7 @@ export default class AlbumsController {
   public async update({ auth, request, response, params }: HttpContextContract) {
     const artist = auth.user as Artist
     const album = await Album.find(params.id)
+
     if (!album || album.artistId !== artist.id) {
       return response.notFound({
         errors: [{ message: 'Album not found', code: 'ALBUM_NOT_FOUND' }],
@@ -161,6 +162,19 @@ export default class AlbumsController {
         schema: AlbumValidator.updateSchema,
         messages: AlbumValidator.messages,
       })
+
+      // Champs non modifiables
+      const nonUpdatableFields = ['artistId', 'createdAt', 'updatedAt'];
+      const receivedKeys = Object.keys(request.body());
+      const forbiddenKeys = receivedKeys.filter((key) => nonUpdatableFields.includes(key));
+
+      // Construction des avertissements
+      const fieldWarnings = forbiddenKeys.map((field) => ({
+        message: `Field '${field}' cannot be modified by the user.`,
+        code: 'FIELD_NOT_MODIFIABLE',
+        field: field,
+      }));
+
 
       album.merge({
         title: payload.title,
@@ -179,7 +193,19 @@ export default class AlbumsController {
         await metadata.save()
       }
 
-      return response.ok({ message: 'Album updated successfully', data: album })
+      // Retour avec avertissements partiels si nécessaire
+      if (fieldWarnings.length > 0) {
+        return response.status(200).json({
+          message: 'Album updated successfully with partial warnings.',
+          warnings: fieldWarnings,
+          data: album,
+        });
+      }
+
+      return response.ok({
+        message: 'Album updated successfully',
+        data: album
+      })
     } catch (error) {
       if (error.messages?.errors) {
         return response.badRequest({ errors: error.messages.errors })

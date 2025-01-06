@@ -279,6 +279,7 @@ export default class SinglesController {
   public async update({ auth, request, response, params }: HttpContextContract) {
     const mainArtist = auth.user as Artist
     const single = await Single.find(params.id)
+
     if (!single || single.artistId !== mainArtist.id) {
       return response.notFound({
         errors: [{ message: 'Single not found', code: 'SINGLE_NOT_FOUND' }],
@@ -286,11 +287,22 @@ export default class SinglesController {
     }
 
     try {
-
       const payload = await request.validate({
         schema: SingleValidator.updateSchema,
         messages: SingleValidator.messages,
       })
+
+      // Champs non modifiables
+      const nonUpdatableFields = ['artistId', 'createdAt', 'updatedAt', 'stats'];
+      const receivedKeys = Object.keys(request.body());
+      const forbiddenKeys = receivedKeys.filter((key) => nonUpdatableFields.includes(key));
+
+      // Construction des avertissements
+      const fieldWarnings = forbiddenKeys.map((field) => ({
+        message: `Field '${field}' cannot be modified by the user.`,
+        code: 'FIELD_NOT_MODIFIABLE',
+        field: field,
+      }));
 
       // Vérifie la releaseDate
       if (payload.releaseDate) {
@@ -404,6 +416,15 @@ export default class SinglesController {
       await this.updateArtistGenres(mainArtist)
       if (single.albumId) {
         await this.updateAlbumGenres(single.albumId)
+      }
+
+      // Retour avec avertissements partiels si nécessaire
+      if (fieldWarnings.length > 0) {
+        return response.status(200).json({
+          message: 'Single updated successfully with partial warnings.',
+          warnings: fieldWarnings,
+          data: single,
+        });
       }
 
       return response.ok({

@@ -39,7 +39,7 @@ export default class ProfilesController {
       })
 
       // Champs non modifiables par l'utilisateur
-      const nonUpdatableFields = ['genres_id', 'popularity', 'isVerified', 'verificationCode', 'passwordResetToken', 'passwordResetExpiresAt']
+      const nonUpdatableFields = ['name', 'genres_id', 'popularity', 'isVerified', 'verificationCode', 'passwordResetToken', 'passwordResetExpiresAt']
       const receivedKeys = Object.keys(request.body())
       const forbiddenKeys = receivedKeys.filter((key) => nonUpdatableFields.includes(key))
 

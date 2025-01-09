@@ -130,7 +130,7 @@ export default class AuthController {
 
       try {
         const token = await auth.use('api').attempt(data.email.toLowerCase(), data.password, {
-          expiresIn: '7days',
+          expiresIn: '1hours',
         })
 
         return response.ok({ message: 'Login successful.', token })

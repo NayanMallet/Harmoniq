@@ -355,13 +355,3 @@ Harmoniq a été développé pour simplifier la gestion des artistes et leurs co
 
 ### Envoi d'Emails
 - Configuré avec Brevo pour la vérification par email et les notifications.
-
----
-
-## 📘 Schéma de la Base de Données
-
----
-
-
-
-   

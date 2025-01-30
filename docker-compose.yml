@@ -1,46 +1,58 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  postgres:
-    container_name: postgres
-    image: postgres:13
-    volumes:
-      - postgres_volume:/var/lib/postgresql/data
+  #####################
+  # Service MySQL     #
+  #####################
+  mysql_db:
+    container_name: mysql_db
+    image: mysql:latest
+    expose:
+      - "3306"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - 5432:5432
-
-  redis:
-    container_name: redis
-    image: redis:6-alpine
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DB_NAME}
     volumes:
-      - redis_volume:/data
-    ports:
-      - 6379:6379
+      - mysql_data:/var/lib/mysql
+    networks:
+      - harmoniq_network
 
-  adonis_app:
-    container_name: adonis_app
-    restart: always
-    depends_on:
-      - postgres
-      - redis
+  #####################
+  # Service API       #
+  #####################
+  harmoniq_api:
+    container_name: harmoniq_api
     build:
       context: .
-      target: dependencies
+      target: production
+    depends_on:
+      - mysql_db
+    # On publie le port de l'API sur l'hôte (ex: 3333:3333)
     ports:
-      - ${PORT}:${PORT}
-      - 9229:9229
+      - "${PORT}:${PORT}"
+    # On charge toutes les variables de .env
     env_file:
       - .env
     environment:
-      - PG_HOST=postgres
-      - REDIS_HOST=redis
-    volumes:
-      - ./:/home/node/app
-    command: dumb-init node ace serve --watch --node-args="--inspect=0.0.0.0"
+      # Optionnel : on peut aussi redéfinir les variables ci-dessous
+      # si on veut être sûrs qu’elles existent.
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: ${PORT}
+      DB_CONNECTION: ${DB_CONNECTION}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DB_NAME: ${MYSQL_DB_NAME}
+    networks:
+      - harmoniq_network
+
+networks:
+  harmoniq_network:
 
 volumes:
-  postgres_volume:
-  redis_volume:
+  mysql_data:

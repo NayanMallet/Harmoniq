@@ -43,6 +43,7 @@
     "@japa/runner": "2.5.1",
     "@types/proxy-addr": "^2.0.3",
     "@types/source-map-support": "^0.5.10",
+    "@types/node": "16.18.36",
     "adonis-preset-ts": "^2.1.0",
     "eslint": "^9.14.0",
     "eslint-config-prettier": "^9.1.0",

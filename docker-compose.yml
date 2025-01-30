@@ -1,17 +1,15 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  #####################
-  # Service MySQL     #
-  #####################
+  ########################
+  # 1) Service MySQL     #
+  ########################
   mysql_db:
     container_name: mysql_db
     image: mysql:latest
     expose:
       - "3306"
     environment:
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DB_NAME}
     volumes:
@@ -19,37 +17,47 @@ services:
     networks:
       - harmoniq_network
 
-  #####################
-  # Service API       #
-  #####################
-  harmoniq_api:
-    container_name: harmoniq_api
+  ########################
+  # 2) Service Adonis     #
+  ########################
+  adonis_app:
+    container_name: adonis_app
+    restart: always
+
     build:
       context: .
-      target: production
-    depends_on:
-      - mysql_db
-    # On publie le port de l'API sur l'hôte (ex: 3333:3333)
+      target: dependencies
+
     ports:
-      - "${PORT}:${PORT}"
-    # On charge toutes les variables de .env
+      - '${PORT}:${PORT}'
+
     env_file:
       - .env
+
+    # Monte le code local dans le conteneur (pour le --watch)
+    volumes:
+      #- ./:/home/node/app
+      # Sur Mac, on commente parfois la ligne ci-dessous pour éviter des collisions
+       - /home/node/app/node_modules
+
+    depends_on:
+      - mysql_db
+
     environment:
-      # Optionnel : on peut aussi redéfinir les variables ci-dessous
-      # si on veut être sûrs qu’elles existent.
-      NODE_ENV: production
+      NODE_ENV: development
       HOST: 0.0.0.0
       PORT: ${PORT}
       DB_CONNECTION: ${DB_CONNECTION}
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOST: mysql_db
+      MYSQL_PORT: 3306
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DB_NAME: ${MYSQL_DB_NAME}
+
     networks:
       - harmoniq_network
+
+    command: >
+      sh -c "node ace migration:run && dumb-init node ace serve --watch --node-args='--inspect=0.0.0.0'"
 
 networks:
   harmoniq_network:

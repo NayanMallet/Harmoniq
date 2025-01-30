@@ -57,7 +57,6 @@
   "dependencies": {
     "@adonisjs/auth": "^8.2.3",
     "@adonisjs/core": "^5.8.0",
-    "@adonisjs/drive": "^3.2.0",
     "@adonisjs/lucid": "^18.4.2",
     "@adonisjs/mail": "^8.2.1",
     "@adonisjs/repl": "^3.1.0",

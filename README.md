@@ -94,25 +94,15 @@ ng)
   - `DB_CONNECTION`, `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DB_NAME`
   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`
 
-4. Exécutez les migrations :
+4. Exécutez l'image docker :
    ```bash
-   node ace migration:run
+   docker-compose up -d --build
    ```
 
-5. Lancez le serveur :
+5. Accédez au serveur :
    ```bash
-    node ace serve --watch
+    localhost:3333
     ```
-
----
-
-## Migrations
-Pour réinitialiser et appliquer les migrations :
-  ``` bash
-  node ace db:wipe
-  node ace migration:run
-  ```
-
 ---
 
 ## API

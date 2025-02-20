@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  ########################
+  # 1) Service MySQL     #
+  ########################
+  mysql_db:
+    container_name: mysql_db
+    image: mysql:latest
+    expose:
+      - "3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DB_NAME}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - harmoniq_network
+
+  ########################
+  # 2) Service Adonis     #
+  ########################
+  adonis_app:
+    container_name: adonis_app
+    restart: always
+
+    build:
+      context: .
+      target: dependencies
+
+    ports:
+      - '${PORT}:${PORT}'
+
+    env_file:
+      - .env
+
+    # Monte le code local dans le conteneur (pour le --watch)
+    volumes:
+      #- ./:/home/node/app
+      # Sur Mac, on commente parfois la ligne ci-dessous pour éviter des collisions
+       - /home/node/app/node_modules
+
+    depends_on:
+      - mysql_db
+
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: ${PORT}
+      DB_CONNECTION: ${DB_CONNECTION}
+      MYSQL_HOST: mysql_db
+      MYSQL_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DB_NAME: ${MYSQL_DB_NAME}
+
+    networks:
+      - harmoniq_network
+
+    command: >
+      sh -c "node ace migration:run && dumb-init node ace serve --watch --node-args='--inspect=0.0.0.0'"
+
+networks:
+  harmoniq_network:
+
+volumes:
+  mysql_data:

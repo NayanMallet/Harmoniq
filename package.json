@@ -43,6 +43,7 @@
     "@japa/runner": "2.5.1",
     "@types/proxy-addr": "^2.0.3",
     "@types/source-map-support": "^0.5.10",
+    "@types/node": "16.18.36",
     "adonis-preset-ts": "^2.1.0",
     "eslint": "^9.14.0",
     "eslint-config-prettier": "^9.1.0",
@@ -57,7 +58,6 @@
   "dependencies": {
     "@adonisjs/auth": "^8.2.3",
     "@adonisjs/core": "^5.8.0",
-    "@adonisjs/drive": "^3.2.0",
     "@adonisjs/lucid": "^18.4.2",
     "@adonisjs/mail": "^8.2.1",
     "@adonisjs/repl": "^3.1.0",

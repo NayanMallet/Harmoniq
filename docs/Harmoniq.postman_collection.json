@@ -1,0 +1,819 @@
+{
+	"info": {
+		"_postman_id": "349d36b7-0697-4f68-8576-f26645a69bdd",
+		"name": "Harmoniq",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "18509415"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register (Créer un compte)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"artist@example.com\",\n  \"password\": \"securepassword\",\n  \"password_confirmation\": \"securepassword\",\n  \"name\": \"Artist Name\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/auth/register"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email (Vérifier un email)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"artist@example.com\",\n    \"code\": \"123456\" // Remplacer par le vrai code envoyé par email\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/auth/verify-email"
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Connexion)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"artist@example.com\",\n    \"password\": \"securepassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/auth/login"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout (Déconnexion)(Authentifié)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "{{api_url}}/auth/logout"
+					},
+					"response": []
+				},
+				{
+					"name": "Request Password Reset (Demander une réinitialisation de mot de passe)(Authentifié)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nayanmallet@gmail.com\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/auth/request-password-reset"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password (Réinitialiser le mot de passe)(Authentifié)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"RESET_TOKEN\", // Remplacer par le token envoyé par email\n    \"password\": \"securepassword\",\n    \"password_confirmation\": \"securepassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/auth/reset-password"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Account (Supprimer un compte)(Authentifié)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "NA.mtkITHe9q3x37TSGDPp-Egrn1dt8IsMtk9fM4HVIlktnUaK8x35OqZMDvfsO"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "{{api_url}}/auth/delete-account"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Artistes",
+			"item": [
+				{
+					"name": "Lister les artistes avec ou sans filtres",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "Nw.yYcHfcA5oMUIucZoCXzI-b-90u5pyKF4Z-yL1OXHVMslRPxuRApk8hROsHJJ"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/artists",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"artists"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Nom de l'artiste",
+									"description": "Recherche par nom d'artiste",
+									"disabled": true
+								},
+								{
+									"key": "genreId",
+									"value": "Id du Genre cherché",
+									"description": "Filtrer par genre musical",
+									"disabled": true
+								},
+								{
+									"key": "country",
+									"value": "Pays cherché",
+									"description": "Filtrer par pays",
+									"disabled": true
+								},
+								{
+									"key": "city",
+									"value": "Ville cherché",
+									"description": "Filtrer par ville",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "(popularity/name)",
+									"description": "Trier par popularité ou par nom d'artiste",
+									"disabled": true
+								},
+								{
+									"key": "sortDirection",
+									"value": "(asc/desc)",
+									"description": "Ordre de tri",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "Nombre de résultats par page",
+									"description": "Limite le nombre de résultats",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "Numéro de la page",
+									"description": "Numéro de la page",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Voir un profil spécifique",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/artists/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"artists",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "Artist ID",
+									"description": "Id de l'artiste cherché"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour le profil d’un artiste connecté (Authantifié)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"biography\": \"Artist Bio\",\n    \"social_links\": {\n    \"facebook\": \"https://facebook.com/artist\",\n    \"instagram\": \"https://instagram.com/artist\",\n    \"your_custom_link\": \"https://yourlink.com/artist\"\n    },\n    \"location\": {\n    \"country\": \"France\",\n    \"city\": \"Paris\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/artists"
+					},
+					"response": []
+				},
+				{
+					"name": "Comparer différents artistes",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/artists/compare?ids=1,2,3",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"artists",
+								"compare"
+							],
+							"query": [
+								{
+									"key": "ids",
+									"value": "1,2,3",
+									"description": "Liste d'identifiants d'artistes séparés par des virgules"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Singles",
+			"item": [
+				{
+					"name": "Création d'un Single (Authentifié)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"My First Single\",\n  \"genreId\": 1, // ID du genre musical\n  \"albumId\": 1, // ID de l'album (optionnel)\n  \"releaseDate\": \"2025-01-25\",\n  \"metadata\": {\n    \"coverUrl\": \"https://example.com/my-single-cover.jpg\",\n    \"lyrics\": \"These are my lyrics\"\n  },\n    \"copyrights\": [\n        {\n            \"artistId\": 1, // ID de l'artiste\n            \"role\": \"Composer\",\n            \"percentage\": 25\n        },\n        {\n            \"artistId\": 2, // ID du deuxième artiste (optionnel) => feature artist\n            \"role\": \"Singer\",\n            \"percentage\": 25\n        },\n        {\n            \"ownerName\": \"John Doe\",\n            \"role\": \"Producer\",\n            \"percentage\": 50\n        }\n        ]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/singles"
+					},
+					"response": []
+				},
+				{
+					"name": "Récupération d'un Single",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/singles/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"singles",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Single Id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lister les singles avec ou sans filtres",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/singles",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"singles"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "Nom du Single",
+									"description": "Recherche par titre de single",
+									"disabled": true
+								},
+								{
+									"key": "genreId",
+									"value": "Id du Genre cherché",
+									"description": "Filtrer par genre musical",
+									"disabled": true
+								},
+								{
+									"key": "artistId",
+									"value": "Id de l'Artiste cherché",
+									"description": "Filtrer par identifiant d'artiste",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "(title/releaseDate/popularity)",
+									"description": "releaseDate: Tri par date de sortie, title: Tri par titre, popularity: Tri par popularité du Single",
+									"disabled": true
+								},
+								{
+									"key": "sortDirection",
+									"value": "(asc/desc)",
+									"description": "Ordre de tri",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "Nombre de résultats par page",
+									"description": "Limite le nombre de résultats",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "Numéro de la page",
+									"description": "Numéro de la page",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modification d'un Single (Authantifié)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New title\",\n    \"genreId\": 1, // ID du genre musical\n    \"albumId\": null, // ID de l'album (optionnel)\n    \"release_date\": \"2025-01-01\",\n    \"metadata\": {\n      \"coverUrl\": \"https://example.com/cover.jpg\",\n      \"lyrics\": \"Lyrics of the song\"\n    },\n    \"copyrights\": [\n      {\n        \"artistId\": 1, // ID de l'artiste\n        \"role\": \"Composer\",\n        \"percentage\": 50\n      },\n      {\n        \"ownerName\": \"John Doe\",\n        \"role\": \"Producer\",\n        \"percentage\": 50\n      }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/singles/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"singles",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Single Id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Suppression d'un Single (Authentifié)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/singles/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"singles",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Single Id"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Albums",
+			"item": [
+				{
+					"name": "Création d'un Album (Authentifié)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "MQ.QuZjWBpVYhbyYg_YxA3GdQSv6qpHe-hFJPS_ku89VoMalwwR_FxKdV2PNv90"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"My Second Album\",\n  \"releaseDate\": \"2024-12-20\",\n  \"metadata\": {\n    \"coverUrl\": \"https://example.com/album-cover.jpg\"\n  }\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/albums"
+					},
+					"response": []
+				},
+				{
+					"name": "Récupération d'un Album",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/albums/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"albums",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lister les albums avec ou sans filtres",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/albums",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"albums"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "Nom de l'Album",
+									"description": "Recherche par titre d'album",
+									"disabled": true
+								},
+								{
+									"key": "genreId",
+									"value": "Id du Genre cherché",
+									"description": "Filtrer par genre musical",
+									"disabled": true
+								},
+								{
+									"key": "artistId",
+									"value": "Id de l'artiste",
+									"description": "Filtrer par identifiant d'artiste",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "(releaseDate/title)",
+									"description": "Trier par date de sortie ou par titre ",
+									"disabled": true
+								},
+								{
+									"key": "sortDirection",
+									"value": "(asc/desc)",
+									"description": "Ordre de tri (asc/desc)",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "Nombre de résultats par page",
+									"description": "Limite le nombre de résultats",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "Numéro de la page",
+									"description": "Numéro de la page",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modification d'un Album (Authantifié)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New title\",\n    \"metadata\": {\n      \"coverUrl\": \"https://example.com/cover.jpg\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/albums/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"albums",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Id de l'Album souhaité"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Suppression d'un Album (Authentifié)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "MQ.QuZjWBpVYhbyYg_YxA3GdQSv6qpHe-hFJPS_ku89VoMalwwR_FxKdV2PNv90"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/albums/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"albums",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Genres",
+			"item": [
+				{
+					"name": "Show Genres",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{api_url}}/genres"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Genre",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"My Genre\",\n    \"description\": \"Description of the genre\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{api_url}}/genres"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Genre",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/genres/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"genres",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "17"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Stats",
+			"item": [
+				{
+					"name": "Récupérer les stats global d'un artiste",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/stats/artist/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"stats",
+								"artist",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Id des de l'artsite cherché"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour les stats d’un single",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"listensCount\": 100005\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/stats/:id",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"stats",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Id du Single souhaité"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "protected_route",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "MQ.p6HdRb7mQ_gHNiwOv5NsYoVSyt8yv6S3cuN6q4xG6CRbNXUlsSiNorcNww_Y"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "{{api_url}}/protected"
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": {
+			"token": "Mg.ktDSywA0RTU4j8CoyeZ27QcdJ3mWEv6RKk1AWNAK-9RpeEZM6UZGAFL3wBQi"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "api_url",
+			"value": "http://localhost:3333/api",
+			"type": "string"
+		}
+	]
+}

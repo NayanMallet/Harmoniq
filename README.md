@@ -46,6 +46,11 @@
 
 ---
 
+## Postman collection
+
+A postman collection is available under the `docs` folder. You can import it directly on Postman to use it.
+
+
 ## Schéma de Base de Données
 
 Voici le schéma de la base de données utilisé pour le projet (généré avec [dbdiagram.io](https://dbdiagram.io)) :

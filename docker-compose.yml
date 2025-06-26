@@ -18,7 +18,7 @@ services:
       - harmoniq_network
 
   ########################
-  # 2) Service Adonis     #
+  # 2) Service Adonis #
   ########################
   adonis_app:
     container_name: adonis_app
